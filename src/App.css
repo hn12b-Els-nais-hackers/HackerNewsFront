@@ -1,38 +1,210 @@
-.App {
-  text-align: center;
+/* Base styles */
+body {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 10pt;
+  color: #828282;
+  margin: 0;
+  padding: 0;
+  background-color: #f6f6ef;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Table styles */
+#hnmain {
+  min-width: 796px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+/* Link styles */
+a {
+  text-decoration: none;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+a:link {
+  color: #000000;
+}
+
+a:visited {
+  color: #828282;
+}
+
+/* Header styles */
+.pagetop {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 10pt;
+  color: #222222;
+  line-height: 12px;
+}
+
+.pagetop a:visited {
+  color: #000000;
+}
+
+/* Profile page specific styles */
+.profile-header {
+  background-color: #7467c3;
+  background-size: cover;
+  background-position: center;
+  height: 200px;
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 5px solid white;
+  position: absolute;
+  bottom: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ccc;
+  background-size: cover;
+  background-position: center;
+}
+
+.profile-content {
+  padding: 20px;
+  margin-top: 60px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.profile-info {
+  background-color: #f6f6ef;
+  padding: 15px;
+  text-align: left;
+  display: block;
+  border: 1px solid #e0e0e0;
+  width: 100%;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+.profile-info label {
+  font-weight: bold;
+  color: #828282;
+}
+
+.profile-info input[type="file"] {
+  margin-top: 5px;
+}
+
+.profile-info textarea {
+  width: 100%;
+  height: 80px;
+  margin-top: 10px;
+  font-family: monospace;
+  font-size: 10pt;
+  resize: both;
+}
+
+.update-btn {
+  background-color: #ff6600;
+  border: none;
   color: white;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-family: Verdana, Geneva, sans-serif;
 }
 
-.App-link {
-  color: #61dafb;
+.profile-links {
+  margin-top: 20px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.profile-links a {
+  display: inline-block;
+  margin-right: 15px;
+  color: #828282;
+}
+
+.profile-links a:hover {
+  text-decoration: underline;
+}
+
+/* Footer styles */
+.footer-container {
+  text-align: center;
+  padding: 20px;
+  background-color: #f6f6ef;
+  border-top: 2px solid #ff6600;
+  margin-top: 20px;
+}
+
+.yclinks {
+  font-family: Verdana, Geneva, sans-serif;
+  font-size: 8pt;
+  color: #828282;
+}
+
+.yclinks a {
+  margin: 0 5px;
+}
+
+/* Mobile responsiveness */
+@media only screen and (max-width: 750px) {
+  #hnmain {
+    width: 100%;
+    min-width: 0;
   }
-  to {
-    transform: rotate(360deg);
+
+  .profile-info {
+    width: 90%;
   }
+
+  .pagetop {
+    display: block;
+    margin: 3px 5px;
+    font-size: 12px;
+    line-height: normal;
+  }
+
+  input[type='text'],
+  input[type='file'],
+  textarea {
+    font-size: 16px;
+    width: 90%;
+  }
+}
+
+.error-message {
+  color: #ff0000;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #ffe6e6;
+  border: 1px solid #ff9999;
+  border-radius: 4px;
+}
+
+.profile-textarea {
+  width: 100%;
+  height: 80px;
+  margin-top: 10px;
+  font-family: monospace;
+  font-size: 10pt;
+  resize: both;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.update-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.current-image {
+  margin-top: 5px;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.current-image a {
+  color: #ff6600;
+  text-decoration: underline;
 }
