@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Profile from './screens/Profile';
+import Submit from './screens/Submit';
+import Ask from './screens/Ask';
 import './App.css';
 
 // Hardcoded API keys for demo
@@ -37,7 +39,14 @@ function App() {
                       path="/profile" 
                       element={<Profile user={USERS[selectedUser]} />} 
                     />
-                    {/* Add more routes here */}
+                    <Route 
+                      path="/submit" 
+                      element={<Submit user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/ask" 
+                      element={<Ask user={USERS[selectedUser]} />} 
+                    />
                   </Routes>
                 </td>
               </tr>
