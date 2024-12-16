@@ -1,7 +1,17 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 function Header({ selectedUser, onUserChange }) {
+  const [query, setQuery] = useState('');
+  const navigate = useNavigate();
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (query.trim()) {
+      navigate(`/search?query=${encodeURIComponent(query)}`);
+    }
+  };
+
   return (
     <table border="0" cellPadding="0" cellSpacing="0" width="100%" style={{ padding: '2px', backgroundColor: '#ff6600' }}>
       <tbody>
@@ -20,9 +30,14 @@ function Header({ selectedUser, onUserChange }) {
                 <Link to="/comments">comments</Link> |
                 <Link to="/ask">ask</Link> |
                 <Link to="/submit">submit</Link>
-                <form style={{ display: 'inline', marginLeft: '10px' }}>
+                <form style={{ display: 'inline', marginLeft: '10px' }} onSubmit={handleSearchSubmit}>
                   Search: 
-                  <input type="text" size="17" />
+                  <input 
+                    type="text" 
+                    size="17" 
+                    value={query} 
+                    onChange={(e) => setQuery(e.target.value)} 
+                  />
                   <button type="submit">Search</button>
                 </form>
               </div>
@@ -48,4 +63,4 @@ function Header({ selectedUser, onUserChange }) {
   );
 }
 
-export default Header; 
+export default Header;

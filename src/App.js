@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import Profile from './screens/Profile';
 import Submit from './screens/Submit';
 import Ask from './screens/Ask';
+import SearchResults from './screens/SearchResults';
 import './App.css';
 
 // Hardcoded API keys for demo
@@ -46,6 +47,10 @@ function App() {
                     <Route 
                       path="/ask" 
                       element={<Ask user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                    path="/search" 
+                    element={<SearchResults user={USERS[selectedUser]} />} 
                     />
                   </Routes>
                 </td>
