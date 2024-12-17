@@ -5,6 +5,8 @@ import Footer from './components/Footer';
 import Profile from './screens/Profile';
 import Submit from './screens/Submit';
 import Ask from './screens/Ask';
+import Newest from './screens/Newest';
+import New from './screens/New';
 import SearchResults from './screens/SearchResults';
 import './App.css';
 
@@ -51,6 +53,14 @@ function App() {
                     <Route 
                     path="/search" 
                     element={<SearchResults user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                    path="/"
+                    element={<Newest user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                    path="/newest"
+                    element={<New user={USERS[selectedUser]} />} 
                     />
                   </Routes>
                 </td>
