@@ -306,3 +306,134 @@ a:visited {
 .spacer {
   height: 5px;
 }
+
+/* Estilos para Comments */
+.comment-table {
+    background-color: #f6f6ef;
+    padding: 10px 20px;
+}
+
+.comment {
+    margin-bottom: 5px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e6e6e6;
+}
+
+.comment-meta {
+    color: #828282;
+    font-size: 8pt;
+    margin-bottom: 4px;
+}
+
+.comment .hnuser {
+    color: #3c963c;
+    text-decoration: none;
+}
+
+.comment .hnuser:hover {
+    text-decoration: underline;
+}
+
+.comment .age {
+    color: #828282;
+}
+
+.commtext {
+    color: #000000;
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 9pt;
+    margin-left: 4px;
+    display: block;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.comment a {
+    color: #828282;
+    text-decoration: none;
+}
+
+.comment a:hover {
+    text-decoration: underline;
+}
+
+.submission-comments {
+    padding: 10px 20px;
+    background-color: #f6f6ef;
+}
+
+.comment-form {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.comment-form textarea {
+    width: 100%;
+    min-height: 100px;
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    font-family: Verdana, Geneva, sans-serif;
+}
+
+.comment-form button {
+    background-color: #ff6600;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.comments-list {
+    list-style: none;
+    padding: 0;
+}
+
+.comments-list .comment {
+    margin-bottom: 15px;
+    padding-left: 10px;
+    border-left: 2px solid #ff6600;
+}
+
+/* Estilos para SubmissionComments */
+.comment-form {
+    margin: 20px 0;
+    padding: 10px;
+}
+
+.comment-form textarea {
+    width: 100%;
+    min-height: 100px;
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    font-family: Verdana, Geneva, sans-serif;
+}
+
+.comment-form button {
+    background-color: #ff6600;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.comment {
+    padding: 10px 0;
+    border-top: 1px solid #e6e6e6;
+}
+
+.comment-meta {
+    color: #828282;
+    font-size: 8pt;
+    margin-bottom: 4px;
+}
+
+.commtext {
+    color: #000000;
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 9pt;
+    margin-left: 4px;
+    line-height: 1.4;
+}
