@@ -7,7 +7,10 @@ import Submit from './screens/Submit';
 import Ask from './screens/Ask';
 import Newest from './screens/Newest';
 import New from './screens/New';
+import Comments from './screens/Comments';
+import Threads from './screens/Threads';
 import SearchResults from './screens/SearchResults';
+import SubmissionComments from './screens/SubmissionComments';
 import './App.css';
 
 // Hardcoded API keys for demo
@@ -61,6 +64,18 @@ function App() {
                     <Route 
                     path="/newest"
                     element={<New user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                    path="/comments"
+                    element={<Comments user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                    path="/threads"
+                    element={<Threads user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/submission/:id" 
+                      element={<SubmissionComments user={USERS[selectedUser]} />} 
                     />
                   </Routes>
                 </td>

@@ -108,7 +108,30 @@ function Newest({ user }) {
 
         if (!response.ok) throw new Error('Failed to fetch submissions');
         const data = await response.json();
-        setSubmissions(data);
+
+        const submissionsWithComments = await Promise.all(
+          data.map(async (submission) => {
+            try {
+              const commentsResponse = await fetch(
+                `https://hackernews-jwl9.onrender.com/api/submissions/${submission.id}/comments/`,
+                { headers }
+              );
+              if (commentsResponse.ok) {
+                const comments = await commentsResponse.json();
+                return {
+                  ...submission,
+                  comment_count: comments.length
+                };
+              }
+              return submission;
+            } catch (err) {
+              console.error(`Error fetching comments for submission ${submission.id}:`, err);
+              return submission;
+            }
+          })
+        );
+
+        setSubmissions(submissionsWithComments);
       } catch (err) {
         console.error('Error fetching submissions:', err);
         setError('Failed to load submissions');
@@ -201,8 +224,8 @@ function Newest({ user }) {
                             hide
                           </span>
                           {' | '}
-                          <Link to={`/item/${submission.id}`}>
-                            {submission.comment_count || 0} comments
+                          <Link to={`/submission/${submission.id}`}>
+                            {submission.comment_count || 0} comment{submission.comment_count !== 1 ? 's' : ''}
                           </Link>
                           {user && submission.user === user.username && (
                             <>
