@@ -37,8 +37,8 @@ const Hidden = ({ user }) => {
 
     const url =
         type === "submission"
-          ? `https://hackernews-jwl9.onrender.com/api/submissions/${id}/?action=unfavorite`
-          : `https://hackernews-jwl9.onrender.com/api/comments/${id}/?action=unfavorite`;
+          ? `https://hackernews-jwl9.onrender.com/api/submissions/${id}/?action=unhide`
+          : `https://hackernews-jwl9.onrender.com/api/comments/${id}/?action=unhide`;
           
       const response = await fetch(
         url,
