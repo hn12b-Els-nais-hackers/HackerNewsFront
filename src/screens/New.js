@@ -47,6 +47,23 @@ function New({ user }) {
         return;
       }
 
+      if (action === 'delete') {
+        const response = await fetch(
+          `https://hackernews-jwl9.onrender.com/api/submissions/${submissionId}/`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Api-Key': user.apiKey,
+              'accept': 'application/json'
+            }
+          }
+        );
+
+        if (!response.ok) throw new Error('Failed to delete submission');
+        setSubmissions(prev => prev.filter(sub => sub.id !== submissionId));
+        return;
+      }
+
       const response = await fetch(
         `https://hackernews-jwl9.onrender.com/api/submissions/${submissionId}/?action=${action}`,
         {

@@ -17,6 +17,7 @@ import UserSubmissions from './screens/UserSubmissions';
 import UserComments from './screens/UserComments';
 import UserProfile from './screens/UserProfile';
 import SubmissionComments from './screens/SubmissionComments';
+import EditSubmission from './screens/EditSubmission';
 import './App.css';
 
 // Hardcoded API keys for demo
@@ -106,6 +107,10 @@ function App() {
                     <Route 
                       path="/submission/:id" 
                       element={<SubmissionComments user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/edit/:id" 
+                      element={<EditSubmission user={USERS[selectedUser]} />} 
                     />
                   </Routes>
                 </td>
