@@ -57,6 +57,34 @@ function Comments({ user }) {
         }
     };
 
+    const handleDeleteComment = async (commentId) => {
+        if (!user) {
+            setError('Please log in to delete comments');
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `https://hackernews-jwl9.onrender.com/api/comments/${commentId}/`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        'Api-Key': user.apiKey,
+                        'accept': 'application/json'
+                    }
+                }
+            );
+
+            if (!response.ok) throw new Error('Failed to delete comment');
+
+            // Remove the deleted comment from state
+            setComments(comments.filter(comment => comment.id !== commentId));
+        } catch (err) {
+            console.error('Error:', err);
+            setError('Failed to delete comment');
+        }
+    };
+
     if (error) return <div className="error-message">{error}</div>;
     if (isLoading) return <div>Loading...</div>;
 
@@ -87,6 +115,23 @@ function Comments({ user }) {
                             <Link to={`/submission/${comment.submission_id}`}>
                                 {comment.submission_title}
                             </Link>
+                            {user && comment.author === user.username && (
+                            <>
+                                {' | '}
+                                <Link to={`/comment/${comment.id}/edit`}>edit</Link>
+                                {' | '}
+                                <span 
+                                className="action-link"
+                                onClick={() => {
+                                    if (window.confirm('Are you sure you want to delete this comment?')) {
+                                    handleDeleteComment(comment.id);
+                                    }
+                                }}
+                                >
+                                delete
+                                </span>
+                            </>
+                            )}
                         </div>
                         <div className="commtext">
                             {comment.text}

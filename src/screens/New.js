@@ -235,16 +235,7 @@ function New({ user }) {
                                 {' | '}
                                 <Link to={`/edit/${submission.id}`}>edit</Link>
                                 {' | '}
-                                <span 
-                                  className="action-link"
-                                  onClick={() => {
-                                    if (window.confirm('Are you sure you want to delete this submission?')) {
-                                      handleSubmissionAction(submission.id, 'delete');
-                                    }
-                                  }}
-                                >
-                                  delete
-                                </span>
+                                <Link to={`/delete/${submission.id}`}>delete</Link>
                               </>
                             )}
                           </td>

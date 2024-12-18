@@ -11,6 +11,9 @@ import Comments from './screens/Comments';
 import Threads from './screens/Threads';
 import SearchResults from './screens/SearchResults';
 import SubmissionComments from './screens/SubmissionComments';
+import EditSubmission from './screens/EditSubmission';
+import DeleteSubmission from './screens/DeleteSubmission';
+import EditComment from './screens/EditComment';
 import './App.css';
 
 // Hardcoded API keys for demo
@@ -30,64 +33,30 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <center>
-          <table id="hnmain" border="0" cellPadding="0" cellSpacing="0" width="85%" bgcolor="#f6f6ef">
-            <tbody>
-              <tr>
-                <td>
-                  <Header selectedUser={selectedUser} onUserChange={handleUserChange} />
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <Routes>
-                    <Route 
-                      path="/profile" 
-                      element={<Profile user={USERS[selectedUser]} />} 
-                    />
-                    <Route 
-                      path="/submit" 
-                      element={<Submit user={USERS[selectedUser]} />} 
-                    />
-                    <Route 
-                      path="/ask" 
-                      element={<Ask user={USERS[selectedUser]} />} 
-                    />
-                    <Route 
-                    path="/search" 
-                    element={<SearchResults user={USERS[selectedUser]} />} 
-                    />
-                    <Route 
-                    path="/"
-                    element={<Newest user={USERS[selectedUser]} />} 
-                    />
-                    <Route 
-                    path="/newest"
-                    element={<New user={USERS[selectedUser]} />} 
-                    />
-                    <Route 
-                    path="/comments"
-                    element={<Comments user={USERS[selectedUser]} />} 
-                    />
-                    <Route 
-                    path="/threads"
-                    element={<Threads user={USERS[selectedUser]} />} 
-                    />
-                    <Route 
-                      path="/submission/:id" 
-                      element={<SubmissionComments user={USERS[selectedUser]} />} 
-                    />
-                  </Routes>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <Footer />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </center>
+        <Header selectedUser={selectedUser} onUserChange={setSelectedUser} />
+        <table border="0" cellPadding="0" cellSpacing="0" width="85%" bgcolor="#f6f6ef">
+          <tbody>
+            <tr>
+              <td>
+                <Routes>
+                  <Route path="/profile" element={<Profile user={USERS[selectedUser]} />} />
+                  <Route path="/submit" element={<Submit user={USERS[selectedUser]} />} />
+                  <Route path="/ask" element={<Ask user={USERS[selectedUser]} />} />
+                  <Route path="/search" element={<SearchResults user={USERS[selectedUser]} />} />
+                  <Route path="/" element={<Newest user={USERS[selectedUser]} />} />
+                  <Route path="/newest" element={<New user={USERS[selectedUser]} />} />
+                  <Route path="/comments" element={<Comments user={USERS[selectedUser]} />} />
+                  <Route path="/threads" element={<Threads user={USERS[selectedUser]} />} />
+                  <Route path="/submission/:id" element={<SubmissionComments user={USERS[selectedUser]} />} />
+                  <Route path="/edit/:id" element={<EditSubmission user={USERS[selectedUser]} />} />
+                  <Route path="/delete/:id" element={<DeleteSubmission user={USERS[selectedUser]} />} />
+                  <Route path="/comment/:id/edit" element={<EditComment user={USERS[selectedUser]} />} />
+                </Routes>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <Footer />
       </div>
     </Router>
   );
