@@ -437,3 +437,110 @@ a:visited {
     margin-left: 4px;
     line-height: 1.4;
 }
+.hidden-container {
+  padding: 20px;
+  background-color: #f6f6ef;
+  border: 1px solid #ddd;
+}
+
+.hidden-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.hidden-table .title {
+  font-size: 14px;
+  color: #000;
+}
+
+.hidden-table .subtext {
+  font-size: 12px;
+  color: #828282;
+}
+
+.unhide-btn {
+  background-color: #f6f6ef; /* Matches the site's theme */
+  color: grey;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 10pt;
+  font-family: Verdana, Geneva, sans-serif;
+  border-radius: 4px; /* Adds rounded corners */
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.unhide-btn:hover {
+  background-color: #e55a00; /* Darker shade on hover */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow on hover */
+}
+
+.unhide-btn:active {
+  background-color: #cc4e00; /* Even darker shade on active click */
+  box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.2); /* Inset shadow for click effect */
+}
+
+.unhide-btn:disabled {
+  background-color: #cccccc; /* Gray background for disabled state */
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.remove-favorite-btn {
+  background-color: #ff6600;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: Verdana, Geneva, sans-serif;
+  transition: background-color 0.3s ease;
+}
+
+.remove-favorite-btn:hover {
+  background-color: #e65500;
+}
+
+.upvoted-container {
+  font-family: Arial, sans-serif;
+  line-height: 1.5;
+}
+
+.upvoted-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.upvoted-table .title {
+  padding: 8px 0;
+}
+
+.upvoted-table .comment-text {
+  font-size: 14px;
+  color: #555;
+}
+
+.upvoted-table .subtext a {
+  color: #ff6600;
+  text-decoration: none;
+}
+
+.upvoted-table .spacer {
+  height: 5px;
+}
+.vote-btn {
+  color: white;
+  background-color: orange;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 6px;
+  cursor: pointer;
+}
+
+.vote-btn:hover {
+  background-color: darkorange;
+}
+
+.user-submissions-container {
+  font-family: Arial, sans-serif;
+}

@@ -10,6 +10,12 @@ import New from './screens/New';
 import Comments from './screens/Comments';
 import Threads from './screens/Threads';
 import SearchResults from './screens/SearchResults';
+import Hidden from './screens/Hidden';
+import Favorites from './screens/FavoriteSubmissions';
+import Upvoted from './screens/Upvoted';
+import UserSubmissions from './screens/UserSubmissions';
+import UserComments from './screens/UserComments';
+import UserProfile from './screens/UserProfile';
 import SubmissionComments from './screens/SubmissionComments';
 import './App.css';
 
@@ -54,24 +60,48 @@ function App() {
                       element={<Ask user={USERS[selectedUser]} />} 
                     />
                     <Route 
-                    path="/search" 
-                    element={<SearchResults user={USERS[selectedUser]} />} 
+                      path="/search" 
+                      element={<SearchResults user={USERS[selectedUser]} />} 
                     />
                     <Route 
-                    path="/"
-                    element={<Newest user={USERS[selectedUser]} />} 
+                      path="/hidden" 
+                      element={<Hidden user={USERS[selectedUser]} />} 
                     />
                     <Route 
-                    path="/newest"
-                    element={<New user={USERS[selectedUser]} />} 
+                      path="/favorites" 
+                      element={<Favorites user={USERS[selectedUser]} />} 
                     />
                     <Route 
-                    path="/comments"
-                    element={<Comments user={USERS[selectedUser]} />} 
+                      path="/upvoted" 
+                      element={<Upvoted user={USERS[selectedUser]} />} 
                     />
                     <Route 
-                    path="/threads"
-                    element={<Threads user={USERS[selectedUser]} />} 
+                      path="/user-submissions" 
+                      element={<UserSubmissions user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/user-comments" 
+                      element={<UserComments user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/user/:username" 
+                      element={<UserProfile apiKey={USERS[selectedUser].apiKey} />} 
+                    />
+                    <Route
+                      path="/"
+                      element={<Newest user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/newest"
+                      element={<New user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/comments"
+                      element={<Comments user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/threads"
+                      element={<Threads user={USERS[selectedUser]} />} 
                     />
                     <Route 
                       path="/submission/:id" 
