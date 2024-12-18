@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { Link } from 'react-router-dom';
 import "../App.css";
 
 const Favorites = ({ user }) => {
@@ -100,8 +101,8 @@ const Favorites = ({ user }) => {
                   <td className="subtext">
                     <span className="score">{submission.points} points</span>{" "}
                     by{" "}
-                    <a href="#" className="hnuser">
-                      {submission.user.username}
+                    <a href={`/user/${user.username}`} className="hnuser">
+                      {user.username}
                     </a>{" "}
                     <span className="age">{submission.created_at}</span> |{" "}
                     <button
@@ -112,7 +113,11 @@ const Favorites = ({ user }) => {
                     >
                       Remove Favorite
                     </button>{" "}
-                    | {submission.comment_count} comments
+                    | <button className="unhide-btn">
+                        <Link to={`/submission/${submission.id}`}>
+                          {submission.submission_comments?.length || submission.comment_count} comment{(submission.submission_comments?.length || submission.comment_count || 0) !== 1 ? 's' : ''}
+                        </Link>  
+                      </button> 
                   </td>
                 </tr>
                 <tr className="spacer" style={{ height: "5px" }}></tr>
@@ -129,7 +134,10 @@ const Favorites = ({ user }) => {
         <ul>
           {favoritesContent.comments.map((comment) => (
             <li key={comment.id}>
-              <a href={`#`}>{comment.text}</a> - by {comment.author.username} (
+              <a href={`/submission/${comment.id}`}>{comment.text}</a> - by{" "}
+                    <a href={`/user/${comment.author}`} className="hnuser">
+                      {user.username}
+                    </a> (
               {comment.created_at})
               <button
                 className="unhide-btn"

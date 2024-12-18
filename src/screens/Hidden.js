@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import '../App.css';
 
 const Hidden = ({ user }) => {
@@ -94,14 +95,18 @@ const Hidden = ({ user }) => {
                   <td colSpan="2"></td>
                   <td className="subtext">
                     <span className="score">{submission.points} points</span>
-                    {' '}by <a href="#" className="hnuser">{submission.user.username}</a>
+                    {' '}by <a href={`/user/${user.username}`} className="hnuser">{user.username}</a>
                     {' '}<span className="age">{submission.created_at}</span>
                     {' '}| <button 
                             className="unhide-btn" 
                             onClick={() => handleUnhideSubmission(submission.id, 'submission')}>
                             unhide
                             </button>
-                    {' '}| {submission.comment_count} comments
+                    {' '}| <button className="unhide-btn">
+                          <Link to={`/submission/${submission.id}`}>
+                            {submission.submission_comments?.length || submission.comment_count} comment{(submission.submission_comments?.length || submission.comment_count || 0) !== 1 ? 's' : ''}
+                          </Link>  
+                        </button> 
                   </td>
                 </tr>
                 <tr className="spacer" style={{ height: '5px' }}></tr>
@@ -118,7 +123,7 @@ const Hidden = ({ user }) => {
         <ul>
           {hiddenContent.comments.map((comment) => (
             <li key={comment.id}>
-              <a href={`#`}>{comment.text}</a> - by {comment.author.username} ({comment.created_at})
+              <a href={`/user/${user.username}`}>{comment.text}</a> - by {comment.author.username} ({comment.created_at})
               <button className="unhide-btn" onClick={() => handleUnhideSubmission(comment.id, 'submission')}>unhide</button>
             </li>
           ))}

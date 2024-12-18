@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { Link } from 'react-router-dom';
 import "../App.css";
 
 const UserSubmissions = ({ user }) => {
@@ -157,7 +158,12 @@ const UserSubmissions = ({ user }) => {
                         {upvotedSubmissions.has(submission.id) && (
                           <> | <button className="unhide-btn" onClick={() => handleAction(submission.id, "unvote")}>unvote</button></>
                         )}{" "}
-                        | {submission.comment_count} comments{" "}
+                        |<button className="unhide-btn">
+                          <Link to={`/submission/${submission.id}`}>
+                            {submission.submission_comments?.length || submission.comment_count} comment{(submission.submission_comments?.length || submission.comment_count || 0) !== 1 ? 's' : ''}
+                          </Link>  
+                        </button> 
+                        
                         | <button className="unhide-btn" onClick={() => handleAction(submission.id, "hide")}>hide</button>
                         {submission.is_hidden && (
                           <> | <button className="unhide-btn" onClick={() => handleAction(submission.id, "unhide")}>unhide</button></>

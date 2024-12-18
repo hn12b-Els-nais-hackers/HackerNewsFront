@@ -111,11 +111,6 @@ function Threads({ user }) {
                         <span className="commtext">
                             {comment.text}
                         </span>
-                        {user && (
-                            <div className="reply-link">
-                                <span className="action-link">reply</span>
-                            </div>
-                        )}
                     </div>
                 ))
             )}

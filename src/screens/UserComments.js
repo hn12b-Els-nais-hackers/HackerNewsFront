@@ -176,7 +176,7 @@ const UserComments = ({ user }) => {
                         {comment.parent_id && (
                           <span>
                             Reply to comment #{comment.parent_id}{" "}
-                            | <a href={`/comments/${comment.parent_id}`}>view parent</a>
+                            | <a href={`/submission/${comment.parent_id}`}>view parent</a>
                           </span>
                         )}
                       </td>
