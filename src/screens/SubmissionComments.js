@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 // Componente recursivo para renderizar un comentario y sus respuestas
-const Comment = ({ comment, level = 0, onReply, user, onAction }) => {
+const Comment = ({ comment, level = 0, onReply, user, onAction, userFavedComments }) => {
     const [isReplying, setIsReplying] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [replyText, setReplyText] = useState('');
@@ -108,7 +108,7 @@ const Comment = ({ comment, level = 0, onReply, user, onAction }) => {
                                         </span>
                                     )}
                                     {' | '}
-                                    {comment.favorited ? (
+                                    {userFavedComments.has(parseInt(comment.id)) ? (
                                         <span 
                                             className="action-link"
                                             onClick={() => handleAction('unfav')}
@@ -206,6 +206,7 @@ const Comment = ({ comment, level = 0, onReply, user, onAction }) => {
                         onReply={onReply}
                         user={user}
                         onAction={onAction}
+                        userFavedComments={userFavedComments}
                     />
                 ))}
             </div>
@@ -220,8 +221,103 @@ function SubmissionComments({ user }) {
     const [newComment, setNewComment] = useState('');
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [userFavedSubmissions, setUserFavedSubmissions] = useState(new Set());
+    const [userFavedComments, setUserFavedComments] = useState(new Set());
+    
+    const fetchUserFavedSubmissions = useCallback(async () => {
+        if (user && user.username && user.apiKey) {
+          try {
+            const response = await fetch(
+              `https://hackernews-jwl9.onrender.com/api/user/${user.username}/content/?content_type=favorites`,
+              {
+                headers: {
+                    "Api-Key": user.apiKey,
+                    Accept: "application/json",
+                },
+              }
+            );
+
+            if (!response.ok) throw new Error('Failed to fetch user faved submissions');
+
+            const data = await response.json();
+            if (data.submissions && Array.isArray(data.submissions)) {
+              const favedIds = new Set(data.submissions.map(sub => parseInt(sub.id)));
+              setUserFavedSubmissions(favedIds);
+            }
+          } catch (err) {
+            console.error('Error fetching user faved submissions:', err);
+          }
+        }
+    }, [user]);
+
+    const fetchUserFavedComments = useCallback(async () => {
+        if (user && user.username && user.apiKey) {
+            try {
+                const response = await fetch(
+                    `https://hackernews-jwl9.onrender.com/api/user/${user.username}/content/?content_type=favorites`,
+                    {
+                        headers: {
+                            "Api-Key": user.apiKey,
+                            Accept: "application/json",
+                        },
+                    }
+                );
+
+                if (!response.ok) throw new Error('Failed to fetch user faved comments');
+
+                const data = await response.json();
+                if (data.comments && Array.isArray(data.comments)) {
+                    const favedIds = new Set(data.comments.map(comment => parseInt(comment.id)));
+                    setUserFavedComments(favedIds);
+                }
+            } catch (err) {
+                console.error('Error fetching user faved comments:', err);
+            }
+        }
+    }, [user]);
+
+    const handleSubmissionAction = async (submissionId, action) => {
+        if (!user) {
+          setError('Please log in to perform this action');
+          return;
+        }
+    
+        try {
+          const response = await fetch(
+            `https://hackernews-jwl9.onrender.com/api/submissions/${submissionId}/?action=${action}`,
+            {
+              method: 'POST',
+              headers: {
+                'Api-Key': user.apiKey,
+                'accept': 'application/json'
+              }
+            }
+          );
+    
+          if (!response.ok) throw new Error(`Failed to ${action} submission`);
+    
+          if (action === 'favorite') {
+            setUserFavedSubmissions(prev => new Set([...prev, parseInt(submissionId)]));
+          } else if (action === 'unfavorite') {
+            setUserFavedSubmissions(prev => {
+              const newSet = new Set(prev);
+              newSet.delete(parseInt(submissionId));
+              return newSet;
+            });
+          }
+    
+        } catch (err) {
+          console.error(`Error ${action} submission:`, err);
+          setError(`Failed to ${action} submission`);
+        }
+      };
 
     useEffect(() => {
+        if (user) {
+            fetchUserFavedSubmissions();
+            fetchUserFavedComments();
+        }
+        
         const fetchSubmissionAndComments = async () => {
             try {
                 const headers = {
@@ -260,23 +356,25 @@ function SubmissionComments({ user }) {
 
                 // Primero, mapear todos los comentarios por ID
                 data.forEach(comment => {
-                    commentMap[comment.id] = {
+                    const commentId = parseInt(comment.id);
+                    commentMap[commentId] = {
                         ...comment,
-                        replies: []
+                        replies: [],
+                        id: commentId
                     };
                 });
 
                 // Luego, construir el árbol
                 data.forEach(comment => {
+                    const commentId = parseInt(comment.id);
                     if (comment.parent_id) {
-                        // Si tiene padre, añadirlo a las respuestas del padre
-                        const parent = commentMap[comment.parent_id];
+                        const parentId = parseInt(comment.parent_id);
+                        const parent = commentMap[parentId];
                         if (parent) {
-                            parent.replies.push(commentMap[comment.id]);
+                            parent.replies.push(commentMap[commentId]);
                         }
                     } else {
-                        // Si no tiene padre, es un comentario raíz
-                        rootComments.push(commentMap[comment.id]);
+                        rootComments.push(commentMap[commentId]);
                     }
                 });
 
@@ -306,7 +404,7 @@ function SubmissionComments({ user }) {
         };
 
         fetchSubmissionAndComments();
-    }, [id, user?.apiKey]);
+    }, [id, user, fetchUserFavedSubmissions, fetchUserFavedComments]);
 
     const formatDate = (dateString) => {
         try {
@@ -434,6 +532,10 @@ function SubmissionComments({ user }) {
                     text: updatedData.text || updatedData,
                     submission_id: updatedData.submission_id
                 });
+            } else if (action === 'fav') {
+                url = `https://hackernews-jwl9.onrender.com/api/comments/${commentId}/?action=favorite`;
+            } else if (action === 'unfav') {
+                url = `https://hackernews-jwl9.onrender.com/api/comments/${commentId}/?action=unfavorite`;
             } else {
                 url = `https://hackernews-jwl9.onrender.com/api/comments/${commentId}/?action=${action}`;
             }
@@ -449,6 +551,53 @@ function SubmissionComments({ user }) {
             });
 
             if (!response.ok) throw new Error(`Failed to ${action} comment`);
+
+            // Actualizar el estado de favoritos
+            if (action === 'fav') {
+                setUserFavedComments(prev => new Set([...prev, parseInt(commentId)]));
+                // Actualizar el estado del comentario
+                setComments(prevComments => {
+                    const updateCommentFavorited = (comments) => {
+                        return comments.map(comment => {
+                            if (comment.id === commentId) {
+                                return { ...comment, favorited: true };
+                            }
+                            if (comment.replies) {
+                                return {
+                                    ...comment,
+                                    replies: updateCommentFavorited(comment.replies)
+                                };
+                            }
+                            return comment;
+                        });
+                    };
+                    return updateCommentFavorited(prevComments);
+                });
+            } else if (action === 'unfav') {
+                setUserFavedComments(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(parseInt(commentId));
+                    return newSet;
+                });
+                // Actualizar el estado del comentario
+                setComments(prevComments => {
+                    const updateCommentFavorited = (comments) => {
+                        return comments.map(comment => {
+                            if (comment.id === commentId) {
+                                return { ...comment, favorited: false };
+                            }
+                            if (comment.replies) {
+                                return {
+                                    ...comment,
+                                    replies: updateCommentFavorited(comment.replies)
+                                };
+                            }
+                            return comment;
+                        });
+                    };
+                    return updateCommentFavorited(prevComments);
+                });
+            }
 
             if (action === 'delete') {
                 // Eliminar el comentario del estado
@@ -534,7 +683,12 @@ function SubmissionComments({ user }) {
                                                 {formatDate(submission.created_at)}
                                             </span>
                                             {' | '}
-                                            <span className="action-link">fav</span>
+                                            <span className="action-link" onClick={() => {
+                                                const action = userFavedSubmissions.has(parseInt(submission.id)) ? 'unfavorite' : 'favorite';
+                                                handleSubmissionAction(submission.id, action);
+                                            }}>
+                                                {userFavedSubmissions.has(parseInt(submission.id)) ? 'unfav' : 'fav'}
+                                            </span>
                                             {' | '}
                                             <span>{submission.comment_count} comment{submission.comment_count !== 1 ? 's' : ''}</span>
                                             {' | '}
@@ -566,6 +720,7 @@ function SubmissionComments({ user }) {
                                             onReply={handleReplySubmit}
                                             user={user}
                                             onAction={handleCommentAction}
+                                            userFavedComments={userFavedComments}
                                         />
                                     ))}
                                 </tbody>
