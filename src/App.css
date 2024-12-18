@@ -306,3 +306,241 @@ a:visited {
 .spacer {
   height: 5px;
 }
+
+/* Estilos para Comments */
+.comment-table {
+    background-color: #f6f6ef;
+    padding: 10px 20px;
+}
+
+.comment {
+    margin-bottom: 5px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e6e6e6;
+}
+
+.comment-meta {
+    color: #828282;
+    font-size: 8pt;
+    margin-bottom: 4px;
+}
+
+.comment .hnuser {
+    color: #3c963c;
+    text-decoration: none;
+}
+
+.comment .hnuser:hover {
+    text-decoration: underline;
+}
+
+.comment .age {
+    color: #828282;
+}
+
+.commtext {
+    color: #000000;
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 9pt;
+    margin-left: 4px;
+    display: block;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.comment a {
+    color: #828282;
+    text-decoration: none;
+}
+
+.comment a:hover {
+    text-decoration: underline;
+}
+
+.submission-comments {
+    padding: 10px 20px;
+    background-color: #f6f6ef;
+}
+
+.comment-form {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.comment-form textarea {
+    width: 100%;
+    min-height: 100px;
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    font-family: Verdana, Geneva, sans-serif;
+}
+
+.comment-form button {
+    background-color: #ff6600;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.comments-list {
+    list-style: none;
+    padding: 0;
+}
+
+.comments-list .comment {
+    margin-bottom: 15px;
+    padding-left: 10px;
+    border-left: 2px solid #ff6600;
+}
+
+/* Estilos para SubmissionComments */
+.comment-form {
+    margin: 20px 0;
+    padding: 10px;
+}
+
+.comment-form textarea {
+    width: 100%;
+    min-height: 100px;
+    margin-bottom: 10px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    font-family: Verdana, Geneva, sans-serif;
+}
+
+.comment-form button {
+    background-color: #ff6600;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.comment {
+    padding: 10px 0;
+    border-top: 1px solid #e6e6e6;
+}
+
+.comment-meta {
+    color: #828282;
+    font-size: 8pt;
+    margin-bottom: 4px;
+}
+
+.commtext {
+    color: #000000;
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 9pt;
+    margin-left: 4px;
+    line-height: 1.4;
+}
+.hidden-container {
+  padding: 20px;
+  background-color: #f6f6ef;
+  border: 1px solid #ddd;
+}
+
+.hidden-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.hidden-table .title {
+  font-size: 14px;
+  color: #000;
+}
+
+.hidden-table .subtext {
+  font-size: 12px;
+  color: #828282;
+}
+
+.unhide-btn {
+  background-color: #f6f6ef; /* Matches the site's theme */
+  color: grey;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 10pt;
+  font-family: Verdana, Geneva, sans-serif;
+  border-radius: 4px; /* Adds rounded corners */
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.unhide-btn:hover {
+  background-color: #e55a00; /* Darker shade on hover */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow on hover */
+}
+
+.unhide-btn:active {
+  background-color: #cc4e00; /* Even darker shade on active click */
+  box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.2); /* Inset shadow for click effect */
+}
+
+.unhide-btn:disabled {
+  background-color: #cccccc; /* Gray background for disabled state */
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.remove-favorite-btn {
+  background-color: #ff6600;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: Verdana, Geneva, sans-serif;
+  transition: background-color 0.3s ease;
+}
+
+.remove-favorite-btn:hover {
+  background-color: #e65500;
+}
+
+.upvoted-container {
+  font-family: Arial, sans-serif;
+  line-height: 1.5;
+}
+
+.upvoted-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.upvoted-table .title {
+  padding: 8px 0;
+}
+
+.upvoted-table .comment-text {
+  font-size: 14px;
+  color: #555;
+}
+
+.upvoted-table .subtext a {
+  color: #ff6600;
+  text-decoration: none;
+}
+
+.upvoted-table .spacer {
+  height: 5px;
+}
+.vote-btn {
+  color: white;
+  background-color: orange;
+  border: none;
+  border-radius: 4px;
+  padding: 3px 6px;
+  cursor: pointer;
+}
+
+.vote-btn:hover {
+  background-color: darkorange;
+}
+
+.user-submissions-container {
+  font-family: Arial, sans-serif;
+}

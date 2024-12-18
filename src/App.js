@@ -6,6 +6,12 @@ import Profile from './screens/Profile';
 import Submit from './screens/Submit';
 import Ask from './screens/Ask';
 import SearchResults from './screens/SearchResults';
+import Hidden from './screens/Hidden';
+import Favorites from './screens/FavoriteSubmissions';
+import Upvoted from './screens/Upvoted';
+import UserSubmissions from './screens/UserSubmissions';
+import UserComments from './screens/UserComments';
+import UserProfile from './screens/UserProfile';
 import './App.css';
 
 // Hardcoded API keys for demo
@@ -51,6 +57,30 @@ function App() {
                     <Route 
                     path="/search" 
                     element={<SearchResults user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/hidden" 
+                      element={<Hidden user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/favorites" 
+                      element={<Favorites user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/upvoted" 
+                      element={<Upvoted user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/user-submissions" 
+                      element={<UserSubmissions user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/user-comments" 
+                      element={<UserComments user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/user/:username" 
+                      element={<UserProfile apiKey={USERS[selectedUser].apiKey} />} 
                     />
                   </Routes>
                 </td>

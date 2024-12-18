@@ -164,10 +164,10 @@ function Profile({ user }) {
           </form>
 
           <div className="profile-links">
-            <Link to="/submissions">Submissions</Link> |
-            <Link to="/comments">Comments</Link> |
-            <Link to="/hidden">Hidden</Link> |
-            <Link to="/upvoted">Upvoted Submissions / Comments</Link> |
+            <Link to="/user-submissions">Submissions</Link>{'|  '}
+            <Link to="/user-comments">Comments</Link>{'|  '}
+            <Link to="/hidden">Hidden</Link>{'|  '}
+            <Link to="/upvoted">Upvoted Submissions / Comments</Link>{'|  '}
             <Link to="/favorites">Favorite Submissions / Comments</Link>
           </div>
         </div>
