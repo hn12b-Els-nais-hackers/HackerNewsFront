@@ -251,7 +251,7 @@ function Ask({ user }) {
                     </>
                   )}
                   {' | '}
-                  <Link to={`/item/${submission.id}`}>
+                  <Link to={`/submission/${submission.id}`}>
                     {submission.comment_count || 0} comments
                   </Link>
                 </td>
