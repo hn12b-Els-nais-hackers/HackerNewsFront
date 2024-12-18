@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "../App.css";
 
-const Favorites = ({ user }) => {
+const Favorites = ({ user, userFavedComments = [] }) => {
   const [favoritesContent, setFavoritesContent] = useState({
     submissions: [],
     comments: [],
@@ -125,15 +125,14 @@ const Favorites = ({ user }) => {
       )}
 
       <h2>Favorite Comments</h2>
-      {favoritesContent.comments.length > 0 ? (
+      {userFavedComments.length > 0 ? (
         <ul>
-          {favoritesContent.comments.map((comment) => (
-            <li key={comment.id}>
-              <a href={`#`}>{comment.text}</a> - by {comment.author.username} (
-              {comment.created_at})
+          {userFavedComments.map((commentId) => (
+            <li key={commentId}>
+              <span>{/* Texto del comentario */}</span>
               <button
                 className="unhide-btn"
-                onClick={() => handleRemoveFavorite(comment.id, "comment")}
+                onClick={() => handleRemoveFavorite(commentId, "comment")}
               >
                 Remove Favorite
               </button>
