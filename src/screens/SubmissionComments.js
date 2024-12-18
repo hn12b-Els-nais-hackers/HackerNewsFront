@@ -4,17 +4,55 @@ import { formatDistanceToNow, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 // Componente recursivo para renderizar un comentario y sus respuestas
-const Comment = ({ comment, level = 0, onReply }) => {
+const Comment = ({ comment, level = 0, onReply, user, onAction }) => {
     const [isReplying, setIsReplying] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const [replyText, setReplyText] = useState('');
+    const [editText, setEditText] = useState(comment.text);
+
+    // Asegurarnos de que el autor sea un string
+    const authorName = typeof comment.author === 'object' ? comment.author.username : comment.author;
+
+    const handleAction = (action) => {
+        if (!user) return;
+        onAction(comment.id, action);
+    };
+
+    const handleEdit = async () => {
+        try {
+            const response = await fetch(
+                `https://hackernews-jwl9.onrender.com/api/comments/${comment.id}/`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        'Api-Key': user.apiKey,
+                        'Content-Type': 'application/json',
+                        'accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        text: editText,
+                        submission_id: comment.submission_id
+                    })
+                }
+            );
+
+            if (!response.ok) throw new Error('Failed to edit comment');
+
+            const updatedComment = await response.json();
+            onAction(comment.id, 'edit', updatedComment);
+            setIsEditing(false);
+        } catch (err) {
+            console.error('Error editing comment:', err);
+        }
+    };
 
     return (
         <div className="comment" style={{ marginLeft: `${level * 40}px` }}>
             <div className="comment-content">
                 <div className="comment-meta">
                     <span className="comhead">
-                        <Link to={`/user/${comment.author}`} className="hnuser">
-                            {comment.author}
+                        <Link to={`/user/${authorName}`} className="hnuser">
+                            {authorName}
                         </Link>
                         <span className="age" title={comment.created_at}>
                             {' '}
@@ -27,18 +65,114 @@ const Comment = ({ comment, level = 0, onReply }) => {
                     </span>
                 </div>
 
-                <span className="commtext">
-                    {comment.text}
-                </span>
-
-                <div className="reply-link">
-                    <span 
-                        className="action-link"
-                        onClick={() => setIsReplying(!isReplying)}
-                    >
-                        reply
+                {isEditing ? (
+                    <div className="edit-form">
+                        <textarea
+                            rows="4"
+                            style={{ width: '100%' }}
+                            value={editText}
+                            onChange={(e) => setEditText(e.target.value)}
+                        />
+                        <button onClick={handleEdit}>update</button>
+                        <button onClick={() => {
+                            setIsEditing(false);
+                            setEditText(comment.text);
+                        }}>
+                            cancel
+                        </button>
+                    </div>
+                ) : (
+                    <span className="commtext">
+                        {comment.text}
                     </span>
-                </div>
+                )}
+
+                {user && (
+                    <table className="comment-actions">
+                        <tbody>
+                            <tr>
+                                <td className="subtext">
+                                    {comment.voted ? (
+                                        <span 
+                                            className="action-link"
+                                            onClick={() => handleAction('unvote')}
+                                        >
+                                            unvote
+                                        </span>
+                                    ) : (
+                                        <span 
+                                            className="action-link"
+                                            onClick={() => handleAction('vote')}
+                                        >
+                                            vote
+                                        </span>
+                                    )}
+                                    {' | '}
+                                    {comment.favorited ? (
+                                        <span 
+                                            className="action-link"
+                                            onClick={() => handleAction('unfav')}
+                                        >
+                                            unfav
+                                        </span>
+                                    ) : (
+                                        <span 
+                                            className="action-link"
+                                            onClick={() => handleAction('fav')}
+                                        >
+                                            fav
+                                        </span>
+                                    )}
+                                    {' | '}
+                                    {comment.hidden ? (
+                                        <span 
+                                            className="action-link"
+                                            onClick={() => handleAction('unhide')}
+                                        >
+                                            unhide
+                                        </span>
+                                    ) : (
+                                        <span 
+                                            className="action-link"
+                                            onClick={() => handleAction('hide')}
+                                        >
+                                            hide
+                                        </span>
+                                    )}
+                                    {' | '}
+                                    <span 
+                                        className="action-link"
+                                        onClick={() => setIsReplying(!isReplying)}
+                                    >
+                                        reply
+                                    </span>
+                                    {user.username === authorName && (
+                                        <>
+                                            {' | '}
+                                            <span 
+                                                className="action-link"
+                                                onClick={() => setIsEditing(true)}
+                                            >
+                                                edit
+                                            </span>
+                                            {' | '}
+                                            <span 
+                                                className="action-link"
+                                                onClick={() => {
+                                                    if (window.confirm('Are you sure you want to delete this comment?')) {
+                                                        handleAction('delete');
+                                                    }
+                                                }}
+                                            >
+                                                delete
+                                            </span>
+                                        </>
+                                    )}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                )}
 
                 {isReplying && (
                     <div className="reply-form">
@@ -64,13 +198,14 @@ const Comment = ({ comment, level = 0, onReply }) => {
                     </div>
                 )}
 
-                {/* Renderizar respuestas recursivamente */}
                 {comment.replies?.map(reply => (
                     <Comment 
                         key={reply.id} 
                         comment={reply} 
                         level={level + 1}
                         onReply={onReply}
+                        user={user}
+                        onAction={onAction}
                     />
                 ))}
             </div>
@@ -278,6 +413,89 @@ function SubmissionComments({ user }) {
         }
     };
 
+    const handleCommentAction = async (commentId, action, updatedData = null) => {
+        if (!user) {
+            setError('Please log in to perform this action');
+            return;
+        }
+
+        try {
+            let method = 'POST';
+            let url;
+            let body = null;
+
+            if (action === 'delete') {
+                method = 'DELETE';
+                url = `https://hackernews-jwl9.onrender.com/api/comments/${commentId}/`;
+            } else if (action === 'edit') {
+                method = 'PUT';
+                url = `https://hackernews-jwl9.onrender.com/api/comments/${commentId}/`;
+                body = JSON.stringify({
+                    text: updatedData.text || updatedData,
+                    submission_id: updatedData.submission_id
+                });
+            } else {
+                url = `https://hackernews-jwl9.onrender.com/api/comments/${commentId}/?action=${action}`;
+            }
+
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Api-Key': user.apiKey,
+                    'Content-Type': 'application/json',
+                    'accept': 'application/json'
+                },
+                ...(body && { body })
+            });
+
+            if (!response.ok) throw new Error(`Failed to ${action} comment`);
+
+            if (action === 'delete') {
+                // Eliminar el comentario del estado
+                setComments(prevComments => {
+                    const removeComment = (comments) => {
+                        return comments.filter(comment => {
+                            if (comment.id === commentId) {
+                                return false;
+                            }
+                            if (comment.replies) {
+                                comment.replies = removeComment(comment.replies);
+                            }
+                            return true;
+                        });
+                    };
+                    return removeComment(prevComments);
+                });
+            } else {
+                const updatedComment = await response.json();
+                setComments(prevComments => {
+                    const updateComment = (comments) => {
+                        return comments.map(comment => {
+                            if (comment.id === commentId) {
+                                return {
+                                    ...comment,
+                                    ...updatedComment,
+                                    replies: comment.replies // Mantener las respuestas existentes
+                                };
+                            }
+                            if (comment.replies) {
+                                return {
+                                    ...comment,
+                                    replies: updateComment(comment.replies)
+                                };
+                            }
+                            return comment;
+                        });
+                    };
+                    return updateComment(prevComments);
+                });
+            }
+        } catch (err) {
+            console.error('Error performing action:', err);
+            setError('Failed to perform action');
+        }
+    };
+
     if (error) return <div className="error-message">{error}</div>;
     if (isLoading) return <div>Loading...</div>;
     if (!submission) return <div>Submission not found</div>;
@@ -346,6 +564,8 @@ function SubmissionComments({ user }) {
                                             key={comment.id} 
                                             comment={comment} 
                                             onReply={handleReplySubmit}
+                                            user={user}
+                                            onAction={handleCommentAction}
                                         />
                                     ))}
                                 </tbody>
