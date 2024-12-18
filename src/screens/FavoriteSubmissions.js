@@ -141,7 +141,7 @@ const Favorites = ({ user, userFavedComments = [] }) => {
               {comment.created_at})
               <button
                 className="unhide-btn"
-                onClick={() => handleRemoveFavorite(commentId, "comment")}
+                onClick={() => handleRemoveFavorite(comment.id, "comment")}
               >
                 Remove Favorite
               </button>

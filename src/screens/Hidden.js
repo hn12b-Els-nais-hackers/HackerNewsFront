@@ -65,7 +65,7 @@ const Hidden = ({ user }) => {
 
   useEffect(() => {
     fetchHiddenContent();
-  }, [user]);
+  }, [user,fetchHiddenContent]);
 
   if (loading) return <p>Loading hidden content...</p>;
   if (error) return <p>Error: {error}</p>;
