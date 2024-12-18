@@ -5,6 +5,10 @@ import Footer from './components/Footer';
 import Profile from './screens/Profile';
 import Submit from './screens/Submit';
 import Ask from './screens/Ask';
+import Newest from './screens/Newest';
+import New from './screens/New';
+import Comments from './screens/Comments';
+import Threads from './screens/Threads';
 import SearchResults from './screens/SearchResults';
 import Hidden from './screens/Hidden';
 import Favorites from './screens/FavoriteSubmissions';
@@ -12,6 +16,7 @@ import Upvoted from './screens/Upvoted';
 import UserSubmissions from './screens/UserSubmissions';
 import UserComments from './screens/UserComments';
 import UserProfile from './screens/UserProfile';
+import SubmissionComments from './screens/SubmissionComments';
 import './App.css';
 
 // Hardcoded API keys for demo
@@ -55,8 +60,8 @@ function App() {
                       element={<Ask user={USERS[selectedUser]} />} 
                     />
                     <Route 
-                    path="/search" 
-                    element={<SearchResults user={USERS[selectedUser]} />} 
+                      path="/search" 
+                      element={<SearchResults user={USERS[selectedUser]} />} 
                     />
                     <Route 
                       path="/hidden" 
@@ -81,6 +86,26 @@ function App() {
                     <Route 
                       path="/user/:username" 
                       element={<UserProfile apiKey={USERS[selectedUser].apiKey} />} 
+                    />
+                    <Route
+                      path="/"
+                      element={<Newest user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/newest"
+                      element={<New user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/comments"
+                      element={<Comments user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/threads"
+                      element={<Threads user={USERS[selectedUser]} />} 
+                    />
+                    <Route 
+                      path="/submission/:id" 
+                      element={<SubmissionComments user={USERS[selectedUser]} />} 
                     />
                   </Routes>
                 </td>
