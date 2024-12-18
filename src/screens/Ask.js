@@ -49,6 +49,23 @@ function Ask({ user }) {
 
       let response;
 
+      if (action === 'hide') {
+        const response = await fetch(
+          `https://hackernews-jwl9.onrender.com/api/submissions/${submissionId}/?action=${action}`,
+          {
+            method: 'POST',
+            headers: {
+              'Api-Key': user.apiKey,
+              'accept': 'application/json'
+            }
+          }
+        );
+  
+        if (!response.ok) throw new Error(`Failed to ${action} submission`);
+        window.location.reload(); // Add this line to reload the page after hiding
+        return; // Add return to prevent further execution
+      }
+
       if (action === 'delete') {
         // Handle deletion of the submission
         response = await fetch(
