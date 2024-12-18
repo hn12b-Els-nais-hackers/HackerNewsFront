@@ -80,7 +80,7 @@ function Comments({ user }) {
                                 parent
                             </Link>
                             {' | '}
-                            <Link to={`/submission/${comment.submission_id}?context=${comment.id}`}>
+                            <Link to={`/submission/${comment.id}`}>
                                 context
                             </Link>
                             {' | on: '}

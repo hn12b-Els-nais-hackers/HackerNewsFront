@@ -22,7 +22,6 @@ function SubmissionComments({ user }) {
                     headers['Api-Key'] = user.apiKey;
                 }
 
-                // Obtenemos toda la información de la llamada a comentarios
                 const response = await fetch(
                     `https://hackernews-jwl9.onrender.com/api/submissions/${id}/comments/`,
                     {
@@ -33,19 +32,17 @@ function SubmissionComments({ user }) {
                 if (!response.ok) throw new Error('Failed to fetch submission and comments');
                 const data = await response.json();
                 
-                // Extraemos la información de la submission del primer comentario
-                if (data && data.length > 0) {
-                    const submissionInfo = {
-                        id: id,
-                        title: data[0].submission_title,
-                        url: data[0].submission_url,
-                        points: data[0].submission_points,
-                        user: data[0].submission_author,
-                        created_at: data[0].submission_created_at,
-                        comment_count: data.length
-                    };
-                    setSubmission(submissionInfo);
-                }
+                // Extraemos la información de la submission del primer comentario o usamos los datos básicos
+                const submissionInfo = {
+                    id: id,
+                    title: data[0]?.submission_title || '',
+                    url: data[0]?.submission_url || '',
+                    points: data[0]?.submission_points || 0,
+                    user: data[0]?.submission_author || '',
+                    created_at: data[0]?.submission_created_at || new Date().toISOString(),
+                    comment_count: data.length
+                };
+                setSubmission(submissionInfo);
                 setComments(data);
 
             } catch (err) {
@@ -167,18 +164,89 @@ function SubmissionComments({ user }) {
                                 <tbody>
                                     {comments.map(comment => (
                                         <tr key={comment.id}>
-                                            <td className="comment">
-                                                <div className="comment-meta">
-                                                    <Link to={`/user/${comment.author}`} className="hnuser">
-                                                        {comment.author}
-                                                    </Link>
-                                                    <span className="age">
-                                                        {' '}
-                                                        {formatDate(comment.created_at)}
-                                                    </span>
-                                                </div>
-                                                <div className="commtext">
-                                                    {comment.text}
+                                            <td>
+                                                <div className="comment">
+                                                    <div className="comment-content">
+                                                        {/* Meta información */}
+                                                        <div className="comment-meta">
+                                                            <span className="comhead">
+                                                                <Link to={`/user/${comment.author}`} className="hnuser">
+                                                                    {comment.author}
+                                                                </Link>
+                                                                <span className="age" title={comment.created_at}>
+                                                                    {' '}
+                                                                    {formatDate(comment.created_at)}
+                                                                </span>
+                                                                {' | '}
+                                                                <Link to={`/submission/${comment.submission_id}`} className="age">
+                                                                    parent
+                                                                </Link>
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Texto del comentario */}
+                                                        <span className="commtext">
+                                                            {comment.text}
+                                                        </span>
+
+                                                        {/* Acciones del comentario */}
+                                                        <table className="comment-actions">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td className="subtext">
+                                                                        {user && (
+                                                                            <>
+                                                                                <span className="action-link">vote</span>
+                                                                                {' | '}
+                                                                                <span className="action-link">fav</span>
+                                                                                {' | '}
+                                                                                <span className="action-link">hide</span>
+                                                                            </>
+                                                                        )}
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+
+                                                        {/* Botones de editar y eliminar */}
+                                                        {user && comment.author === user.username && (
+                                                            <div className="comment-actions">
+                                                                <span className="action-link">edit</span>
+                                                                {' | '}
+                                                                <span 
+                                                                    className="action-link"
+                                                                    onClick={() => {
+                                                                        if (window.confirm('Are you sure you want to delete this comment?')) {
+                                                                            // handleDeleteComment(comment.id);
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    delete
+                                                                </span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Enlace de reply */}
+                                                        {user && (
+                                                            <div className="reply-link">
+                                                                <span className="action-link">reply</span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Formularios de edición y respuesta (inicialmente ocultos) */}
+                                                        <div className="edit-form" style={{ display: 'none' }}>
+                                                            <textarea defaultValue={comment.text} rows="4" style={{ width: '100%' }} />
+                                                            <button type="submit">update</button>
+                                                            <button type="button">cancel</button>
+                                                        </div>
+
+                                                        <div className="reply-form" style={{ display: 'none' }}>
+                                                            <textarea rows="4" style={{ width: '100%' }} />
+                                                            <button type="submit">add reply</button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Aquí irían las respuestas anidadas cuando implementemos esa funcionalidad */}
                                                 </div>
                                             </td>
                                         </tr>

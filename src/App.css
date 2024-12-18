@@ -544,3 +544,19 @@ a:visited {
 .user-submissions-container {
   font-family: Arial, sans-serif;
 }
+
+.context-tree {
+    margin-bottom: 20px;
+    padding-left: 15px;
+    border-left: 2px solid #ff6600;
+}
+
+.context-comment {
+    opacity: 0.8;
+    margin-bottom: 10px;
+}
+
+.context-comment:last-child {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e6e6e6;
+}
