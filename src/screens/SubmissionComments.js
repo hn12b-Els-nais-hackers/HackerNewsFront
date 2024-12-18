@@ -3,6 +3,81 @@ import { Link, useParams } from 'react-router-dom';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+// Componente recursivo para renderizar un comentario y sus respuestas
+const Comment = ({ comment, level = 0, onReply }) => {
+    const [isReplying, setIsReplying] = useState(false);
+    const [replyText, setReplyText] = useState('');
+
+    return (
+        <div className="comment" style={{ marginLeft: `${level * 40}px` }}>
+            <div className="comment-content">
+                <div className="comment-meta">
+                    <span className="comhead">
+                        <Link to={`/user/${comment.author}`} className="hnuser">
+                            {comment.author}
+                        </Link>
+                        <span className="age" title={comment.created_at}>
+                            {' '}
+                            {formatDistanceToNow(parseISO(comment.created_at), { addSuffix: true, locale: es })}
+                        </span>
+                        {' | '}
+                        <Link to={`/submission/${comment.submission_id}`} className="age">
+                            parent
+                        </Link>
+                    </span>
+                </div>
+
+                <span className="commtext">
+                    {comment.text}
+                </span>
+
+                <div className="reply-link">
+                    <span 
+                        className="action-link"
+                        onClick={() => setIsReplying(!isReplying)}
+                    >
+                        reply
+                    </span>
+                </div>
+
+                {isReplying && (
+                    <div className="reply-form">
+                        <textarea
+                            rows="4"
+                            style={{ width: '100%' }}
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            placeholder="Write your reply..."
+                        />
+                        <button 
+                            onClick={() => {
+                                onReply(comment.id, replyText);
+                                setReplyText('');
+                                setIsReplying(false);
+                            }}
+                        >
+                            add reply
+                        </button>
+                        <button onClick={() => setIsReplying(false)}>
+                            cancel
+                        </button>
+                    </div>
+                )}
+
+                {/* Renderizar respuestas recursivamente */}
+                {comment.replies?.map(reply => (
+                    <Comment 
+                        key={reply.id} 
+                        comment={reply} 
+                        level={level + 1}
+                        onReply={onReply}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
+
 function SubmissionComments({ user }) {
     const { id } = useParams();
     const [submission, setSubmission] = useState(null);
@@ -32,7 +107,7 @@ function SubmissionComments({ user }) {
                 if (!response.ok) throw new Error('Failed to fetch submission and comments');
                 const data = await response.json();
                 
-                // Extraemos la información de la submission del primer comentario o usamos los datos básicos
+                // Extraemos la información de la submission
                 const submissionInfo = {
                     id: id,
                     title: data[0]?.submission_title || '',
@@ -43,7 +118,49 @@ function SubmissionComments({ user }) {
                     comment_count: data.length
                 };
                 setSubmission(submissionInfo);
-                setComments(data);
+
+                // Construir el árbol de comentarios
+                const commentMap = {};
+                const rootComments = [];
+
+                // Primero, mapear todos los comentarios por ID
+                data.forEach(comment => {
+                    commentMap[comment.id] = {
+                        ...comment,
+                        replies: []
+                    };
+                });
+
+                // Luego, construir el árbol
+                data.forEach(comment => {
+                    if (comment.parent_id) {
+                        // Si tiene padre, añadirlo a las respuestas del padre
+                        const parent = commentMap[comment.parent_id];
+                        if (parent) {
+                            parent.replies.push(commentMap[comment.id]);
+                        }
+                    } else {
+                        // Si no tiene padre, es un comentario raíz
+                        rootComments.push(commentMap[comment.id]);
+                    }
+                });
+
+                // Ordenar los comentarios raíz por fecha (más recientes primero)
+                rootComments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                // Ordenar recursivamente las respuestas de cada comentario
+                const sortReplies = (comments) => {
+                    comments.forEach(comment => {
+                        if (comment.replies && comment.replies.length > 0) {
+                            comment.replies.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                            sortReplies(comment.replies);
+                        }
+                    });
+                };
+
+                sortReplies(rootComments);
+
+                setComments(rootComments);
 
             } catch (err) {
                 console.error('Error:', err);
@@ -91,11 +208,73 @@ function SubmissionComments({ user }) {
             if (!response.ok) throw new Error('Failed to add comment');
 
             const newCommentData = await response.json();
-            setComments(prev => [...prev, newCommentData]);
+            // Asegurarnos de que el autor sea un string
+            const formattedComment = {
+                ...newCommentData,
+                author: newCommentData.author.username || newCommentData.author
+            };
+            setComments(prev => [...prev, formattedComment]);
             setNewComment('');
         } catch (err) {
             console.error('Error adding comment:', err);
             setError('Failed to add comment');
+        }
+    };
+
+    const handleReplySubmit = async (parentId, text) => {
+        if (!user) {
+            setError('Please log in to reply');
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `https://hackernews-jwl9.onrender.com/api/submissions/${id}/comments/`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Api-Key': user.apiKey,
+                        'Content-Type': 'application/json',
+                        'accept': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        text: text,
+                        parent_id: parentId
+                    })
+                }
+            );
+
+            if (!response.ok) throw new Error('Failed to add reply');
+
+            const newReply = await response.json();
+            const formattedReply = {
+                ...newReply,
+                author: newReply.author.username || newReply.author
+            };
+
+            // Actualizar los comentarios de forma recursiva
+            const updateCommentsRecursively = (comments) => {
+                return comments.map(comment => {
+                    if (comment.id === parentId) {
+                        return {
+                            ...comment,
+                            replies: [...(comment.replies || []), formattedReply]
+                        };
+                    }
+                    if (comment.replies) {
+                        return {
+                            ...comment,
+                            replies: updateCommentsRecursively(comment.replies)
+                        };
+                    }
+                    return comment;
+                });
+            };
+
+            setComments(prevComments => updateCommentsRecursively(prevComments));
+        } catch (err) {
+            console.error('Error adding reply:', err);
+            setError('Failed to add reply');
         }
     };
 
@@ -163,93 +342,11 @@ function SubmissionComments({ user }) {
                             <table border="0" cellPadding="0" cellSpacing="0">
                                 <tbody>
                                     {comments.map(comment => (
-                                        <tr key={comment.id}>
-                                            <td>
-                                                <div className="comment">
-                                                    <div className="comment-content">
-                                                        {/* Meta información */}
-                                                        <div className="comment-meta">
-                                                            <span className="comhead">
-                                                                <Link to={`/user/${comment.author}`} className="hnuser">
-                                                                    {comment.author}
-                                                                </Link>
-                                                                <span className="age" title={comment.created_at}>
-                                                                    {' '}
-                                                                    {formatDate(comment.created_at)}
-                                                                </span>
-                                                                {' | '}
-                                                                <Link to={`/submission/${comment.submission_id}`} className="age">
-                                                                    parent
-                                                                </Link>
-                                                            </span>
-                                                        </div>
-
-                                                        {/* Texto del comentario */}
-                                                        <span className="commtext">
-                                                            {comment.text}
-                                                        </span>
-
-                                                        {/* Acciones del comentario */}
-                                                        <table className="comment-actions">
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td className="subtext">
-                                                                        {user && (
-                                                                            <>
-                                                                                <span className="action-link">vote</span>
-                                                                                {' | '}
-                                                                                <span className="action-link">fav</span>
-                                                                                {' | '}
-                                                                                <span className="action-link">hide</span>
-                                                                            </>
-                                                                        )}
-                                                                    </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-
-                                                        {/* Botones de editar y eliminar */}
-                                                        {user && comment.author === user.username && (
-                                                            <div className="comment-actions">
-                                                                <span className="action-link">edit</span>
-                                                                {' | '}
-                                                                <span 
-                                                                    className="action-link"
-                                                                    onClick={() => {
-                                                                        if (window.confirm('Are you sure you want to delete this comment?')) {
-                                                                            // handleDeleteComment(comment.id);
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    delete
-                                                                </span>
-                                                            </div>
-                                                        )}
-
-                                                        {/* Enlace de reply */}
-                                                        {user && (
-                                                            <div className="reply-link">
-                                                                <span className="action-link">reply</span>
-                                                            </div>
-                                                        )}
-
-                                                        {/* Formularios de edición y respuesta (inicialmente ocultos) */}
-                                                        <div className="edit-form" style={{ display: 'none' }}>
-                                                            <textarea defaultValue={comment.text} rows="4" style={{ width: '100%' }} />
-                                                            <button type="submit">update</button>
-                                                            <button type="button">cancel</button>
-                                                        </div>
-
-                                                        <div className="reply-form" style={{ display: 'none' }}>
-                                                            <textarea rows="4" style={{ width: '100%' }} />
-                                                            <button type="submit">add reply</button>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Aquí irían las respuestas anidadas cuando implementemos esa funcionalidad */}
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        <Comment 
+                                            key={comment.id} 
+                                            comment={comment} 
+                                            onReply={handleReplySubmit}
+                                        />
                                     ))}
                                 </tbody>
                             </table>
