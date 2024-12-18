@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Link } from 'react-router-dom';
 import "../App.css";
 
-const Favorites = ({ user }) => {
+const Favorites = ({ user, userFavedComments = [] }) => {
   const [favoritesContent, setFavoritesContent] = useState({
     submissions: [],
     comments: [],
@@ -130,7 +130,7 @@ const Favorites = ({ user }) => {
       )}
 
       <h2>Favorite Comments</h2>
-      {favoritesContent.comments.length > 0 ? (
+      {userFavedComments.length > 0 ? (
         <ul>
           {favoritesContent.comments.map((comment) => (
             <li key={comment.id}>
@@ -141,7 +141,7 @@ const Favorites = ({ user }) => {
               {comment.created_at})
               <button
                 className="unhide-btn"
-                onClick={() => handleRemoveFavorite(comment.id, "comment")}
+                onClick={() => handleRemoveFavorite(commentId, "comment")}
               >
                 Remove Favorite
               </button>
