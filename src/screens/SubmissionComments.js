@@ -119,21 +119,12 @@ const Comment = ({ comment, level = 0, onReply, user, onAction, userFavedComment
                                         </span>
                                     )}
                                     {' | '}
-                                    {comment.hidden ? (
-                                        <span 
-                                            className="action-link"
-                                            onClick={() => handleAction('unhide')}
-                                        >
-                                            unhide
-                                        </span>
-                                    ) : (
-                                        <span 
+                                    <span 
                                             className="action-link"
                                             onClick={() => handleAction('hide')}
                                         >
                                             hide
-                                        </span>
-                                    )}
+                                    </span>
                                     {' | '}
                                     <span 
                                         className="action-link"
@@ -448,35 +439,38 @@ function SubmissionComments({ user }) {
                 const commentMap = {};
                 const rootComments = [];
 
-                // Primero, mapear todos los comentarios por ID
+                // Primero, mapear todos los comentarios por ID y filtrar los ocultos
                 data.forEach(comment => {
-                    const commentId = parseInt(comment.id);
-                    commentMap[commentId] = {
-                        ...comment,
-                        replies: [],
-                        id: commentId,
-                        voted: votedComments.has(commentId) // Establecer el estado inicial de voted
-                    };
-                });
-
-                // Luego, construir el árbol
-                data.forEach(comment => {
-                    const commentId = parseInt(comment.id);
-                    if (comment.parent_id) {
-                        const parentId = parseInt(comment.parent_id);
-                        const parent = commentMap[parentId];
-                        if (parent) {
-                            parent.replies.push(commentMap[commentId]);
-                        }
-                    } else {
-                        rootComments.push(commentMap[commentId]);
+                    if (!comment.hidden_by || !comment.hidden_by.includes(user.id)) { // Skip comments hidden by the user
+                        const commentId = parseInt(comment.id);
+                        commentMap[commentId] = {
+                            ...comment,
+                            replies: [],
+                            id: commentId,
+                            voted: votedComments.has(commentId)
+                        };
                     }
                 });
 
-                // Ordenar los comentarios raíz por fecha (más recientes primero)
+                // Luego, construir el árbol solo con comentarios no ocultos
+                data.forEach(comment => {
+                    if (!comment.hidden_by || !comment.hidden_by.includes(user.id)) { // Skip comments hidden by the user
+                        const commentId = parseInt(comment.id);
+                        if (comment.parent_id) {
+                            const parentId = parseInt(comment.parent_id);
+                            const parent = commentMap[parentId];
+                            if (parent) {
+                                parent.replies.push(commentMap[commentId]);
+                            }
+                        } else {
+                            rootComments.push(commentMap[commentId]);
+                        }
+                    }
+                });
+
+                // Rest of the sorting logic remains the same
                 rootComments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-                // Ordenar recursivamente las respuestas de cada comentario
                 const sortReplies = (comments) => {
                     comments.forEach(comment => {
                         if (comment.replies && comment.replies.length > 0) {
@@ -487,7 +481,6 @@ function SubmissionComments({ user }) {
                 };
 
                 sortReplies(rootComments);
-
                 setComments(rootComments);
 
             } catch (err) {
@@ -771,6 +764,24 @@ function SubmissionComments({ user }) {
                         });
                     };
                     return updateComment(prevComments);
+                });
+            }
+
+            if (action === 'hide') {
+                // Remove the hidden comment from the UI
+                setComments(prevComments => {
+                    const removeHiddenComment = (comments) => {
+                        return comments.filter(comment => {
+                            if (comment.id === commentId) {
+                                return false;
+                            }
+                            if (comment.replies) {
+                                comment.replies = removeHiddenComment(comment.replies);
+                            }
+                            return true;
+                        });
+                    };
+                    return removeHiddenComment(prevComments);
                 });
             }
         } catch (err) {
