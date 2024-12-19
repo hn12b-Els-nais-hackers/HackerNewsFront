@@ -75,7 +75,7 @@ function Threads({ user }) {
                                     {formatDate(comment.created_at)}
                                 </span>
                                 {' | '}
-                                <Link to={`/submission/${comment.submission_id}`}>
+                                <Link to={`/submission/${comment.id}`}>
                                     parent
                                 </Link>
                                 {' | '}
@@ -102,10 +102,7 @@ function Threads({ user }) {
                                         <span className="action-link">delete</span>
                                     </>
                                 )}
-                                {' | on: '}
-                                <Link to={`/submission/${comment.submission_id}`}>
-                                    {comment.submission_title}
-                                </Link>
+                               
                             </span>
                         </div>
                         <span className="commtext">
