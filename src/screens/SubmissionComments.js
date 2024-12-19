@@ -454,7 +454,9 @@ function SubmissionComments({ user }) {
                 const rootComments = [];
 
                 // Primero, mapear todos los comentarios por ID y filtrar los ocultos
+
                 commentsData.forEach(comment => {
+
                     if (!comment.hidden_by || !comment.hidden_by.includes(user.id)) { // Skip comments hidden by the user
                         const commentId = parseInt(comment.id);
                         commentMap[commentId] = {
@@ -467,7 +469,9 @@ function SubmissionComments({ user }) {
                 });
 
                 // Luego, construir el árbol solo con comentarios no ocultos
+
                 commentsData.forEach(comment => {
+
                     if (!comment.hidden_by || !comment.hidden_by.includes(user.id)) { // Skip comments hidden by the user
                         const commentId = parseInt(comment.id);
                         if (comment.parent_id) {
