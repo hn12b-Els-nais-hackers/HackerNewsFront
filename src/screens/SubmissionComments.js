@@ -59,8 +59,12 @@ const Comment = ({ comment, level = 0, onReply, user, onAction, userFavedComment
                             {formatDistanceToNow(parseISO(comment.created_at), { addSuffix: true, locale: es })}
                         </span>
                         {' | '}
-                        <Link to={`/submission/${comment.submission_id}`} className="age">
+                        <Link to={`/submission/${comment.submission_id}`}>
                             parent
+                        </Link>
+                        {' | '}
+                        <Link to={`/submission/${comment.submission_id}#${comment.id}`}>
+                            context
                         </Link>
                     </span>
                 </div>
@@ -394,14 +398,13 @@ function SubmissionComments({ user }) {
     };
 
     useEffect(() => {
-        if (user) {
-            fetchUserFavedSubmissions();
-            fetchUserFavedComments();
-            fetchUserUpvotedSubmissions();
-        }
-        
         const fetchSubmissionAndComments = async () => {
             try {
+                if (!id) {
+                    setError('No submission ID provided');
+                    return;
+                }
+
                 const headers = {
                     'accept': 'application/json'
                 };
@@ -410,27 +413,38 @@ function SubmissionComments({ user }) {
                     headers['Api-Key'] = user.apiKey;
                 }
 
-                const response = await fetch(
+                // Obtener todas las submissions
+                const submissionResponse = await fetch(
+                    'https://hackernews-jwl9.onrender.com/api/submissions/',
+                    {
+                        headers: headers
+                    }
+                );
+
+                if (!submissionResponse.ok) throw new Error('Failed to fetch submission');
+                const allSubmissions = await submissionResponse.json();
+                
+                // Convertir el ID a número y encontrar la submission
+                const submissionId = Number(id);
+                console.log('All submissions:', allSubmissions);
+                console.log('Looking for ID:', submissionId);
+                
+                const submission = allSubmissions.find(sub => sub.id === submissionId);
+                console.log('Found submission:', submission);
+
+                if (!submission) throw new Error('Submission not found');
+                setSubmission(submission);
+
+                // Luego obtener los comentarios
+                const commentsResponse = await fetch(
                     `https://hackernews-jwl9.onrender.com/api/submissions/${id}/comments/`,
                     {
                         headers: headers
                     }
                 );
 
-                if (!response.ok) throw new Error('Failed to fetch submission and comments');
-                const data = await response.json();
-                
-                // Extraemos la información de la submission
-                const submissionInfo = {
-                    id: id,
-                    title: data[0]?.submission_title || '',
-                    url: data[0]?.submission_url || '',
-                    points: data[0]?.submission_points || 0,
-                    user: data[0]?.submission_author || '',
-                    created_at: data[0]?.submission_created_at || new Date().toISOString(),
-                    comment_count: data.length
-                };
-                setSubmission(submissionInfo);
+                if (!commentsResponse.ok) throw new Error('Failed to fetch comments');
+                const commentsData = await commentsResponse.json();
 
                 // Obtener los comentarios votados antes de procesar los comentarios
                 const votedComments = user ? await fetchUserVotedComments() : new Set();
@@ -440,7 +454,7 @@ function SubmissionComments({ user }) {
                 const rootComments = [];
 
                 // Primero, mapear todos los comentarios por ID y filtrar los ocultos
-                data.forEach(comment => {
+                commentsData.forEach(comment => {
                     if (!comment.hidden_by || !comment.hidden_by.includes(user.id)) { // Skip comments hidden by the user
                         const commentId = parseInt(comment.id);
                         commentMap[commentId] = {
@@ -453,7 +467,7 @@ function SubmissionComments({ user }) {
                 });
 
                 // Luego, construir el árbol solo con comentarios no ocultos
-                data.forEach(comment => {
+                commentsData.forEach(comment => {
                     if (!comment.hidden_by || !comment.hidden_by.includes(user.id)) { // Skip comments hidden by the user
                         const commentId = parseInt(comment.id);
                         if (comment.parent_id) {
@@ -482,7 +496,6 @@ function SubmissionComments({ user }) {
 
                 sortReplies(rootComments);
                 setComments(rootComments);
-
             } catch (err) {
                 console.error('Error:', err);
                 setError('Failed to load submission and comments');
@@ -491,8 +504,10 @@ function SubmissionComments({ user }) {
             }
         };
 
-        fetchSubmissionAndComments();
-    }, [id, user, fetchUserFavedSubmissions, fetchUserFavedComments, fetchUserUpvotedSubmissions, fetchUserVotedComments]);
+        if (id) {
+            fetchSubmissionAndComments();
+        }
+    }, [id, user?.apiKey, fetchUserVotedComments]);
 
     const formatDate = (dateString) => {
         try {

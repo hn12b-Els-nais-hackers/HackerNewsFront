@@ -11,16 +11,22 @@ function Comments({ user }) {
     useEffect(() => {
         const fetchComments = async () => {
             try {
+                if (!user || !user.username) {
+                    setError('Please log in to view comments');
+                    return;
+                }
+
                 const headers = {
                     'accept': 'application/json'
                 };
                 
-                if (user?.apiKey) {
+                if (user.apiKey) {
                     headers['Api-Key'] = user.apiKey;
                 }
 
+                // Obtener los comentarios
                 const response = await fetch(
-                    'https://hackernews-jwl9.onrender.com/api/comments/',
+                    `https://hackernews-jwl9.onrender.com/api/user/${user.username}/content/?content_type=comments`,
                     {
                         headers: headers
                     }
@@ -28,12 +34,39 @@ function Comments({ user }) {
 
                 if (!response.ok) throw new Error('Failed to fetch comments');
                 const data = await response.json();
+                const comments = data.comments || [];
+                console.log('Comments:', comments);
 
-                // Ordenar comentarios por fecha (más nuevo primero)
-                const sortedComments = data.sort((a, b) => 
+                // Obtener todas las submissions
+                const submissionsResponse = await fetch(
+                    'https://hackernews-jwl9.onrender.com/api/submissions/',
+                    {
+                        headers: headers
+                    }
+                );
+
+                if (!submissionsResponse.ok) throw new Error('Failed to fetch submissions');
+                const submissions = await submissionsResponse.json();
+                console.log('Submissions:', submissions);
+
+                // Añadir el título de la submission a cada comentario
+                const commentsWithSubmissions = comments.map(comment => {
+                    console.log('Processing comment:', comment);
+                    console.log('Looking for submission:', comment.submission);
+                    const submission = submissions.find(sub => sub.id === parseInt(comment.submission));
+                    console.log('Found submission:', submission);
+                    return {
+                        ...comment,
+                        submission_id: comment.submission,
+                        submission_title: submission ? submission.title : 'untitled'
+                    };
+                });
+
+                const sortedComments = commentsWithSubmissions.sort((a, b) => 
                     new Date(b.created_at) - new Date(a.created_at)
                 );
 
+                console.log('Final comments:', sortedComments);
                 setComments(sortedComments);
             } catch (err) {
                 console.error('Error:', err);
@@ -44,7 +77,7 @@ function Comments({ user }) {
         };
 
         fetchComments();
-    }, [user?.apiKey]);
+    }, [user]);
 
     const formatDate = (dateString) => {
         try {
@@ -65,32 +98,32 @@ function Comments({ user }) {
             {comments.length === 0 ? (
                 <div>No comments yet.</div>
             ) : (
-                comments.map(comment => (
-                    <div key={comment.id} className="comment">
+                comments.map((comment, index) => (
+                    <div key={comment.id} className="comment" id={comment.id}>
                         <div className="comment-meta">
-                            <Link to={`/user/${comment.author}`} className="hnuser">
-                                {comment.author}
-                            </Link>
-                            <span className="age">
-                                {' '}
-                                {formatDate(comment.created_at)}
+                            <span className="comhead">
+                                <Link to={`/user/${comment.author}`} className="hnuser">
+                                    {comment.author}
+                                </Link>
+                                <span className="age">
+                                    {' '}
+                                    {formatDate(comment.created_at)}
+                                </span>
+                                {' | '}
+                                <Link to={`/submission/${comment.id}`}>
+                                    parent
+                                </Link>
+                                {' | '}
+                                <Link to={`/submission/${comment.id}`}>
+                                    context
+                                </Link>
+                                
                             </span>
-                            {' | '}
-                            <Link to={`/submission/${comment.submission_id}`}>
-                                parent
-                            </Link>
-                            {' | '}
-                            <Link to={`/submission/${comment.id}`}>
-                                context
-                            </Link>
-                            {' | on: '}
-                            <Link to={`/submission/${comment.submission_id}`}>
-                                {comment.submission_title}
-                            </Link>
                         </div>
-                        <div className="commtext">
+
+                        <span className="commtext">
                             {comment.text}
-                        </div>
+                        </span>
                     </div>
                 ))
             )}
