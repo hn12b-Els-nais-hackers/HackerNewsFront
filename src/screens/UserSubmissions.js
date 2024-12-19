@@ -172,7 +172,6 @@ const UserSubmissions = ({ user }) => {
                           <>
                             {" "}
                             | <button className="unhide-btn" onClick={() => handleAction(submission.id, "favorite")}>fav</button>{" "}
-                            | <button className="unhide-btn" onClick={() => handleAction(submission.id, "edit")}>edit</button>{" "}
                             | <button className="unhide-btn" onClick={() => handleAction(submission.id, "delete")}>delete</button>
                           </>
                         )}

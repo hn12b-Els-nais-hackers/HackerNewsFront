@@ -124,7 +124,7 @@ const Hidden = ({ user }) => {
           {hiddenContent.comments.map((comment) => (
             <li key={comment.id}>
               <a href={`/user/${user.username}`}>{comment.text}</a> - by {comment.author.username} ({comment.created_at})
-              <button className="unhide-btn" onClick={() => handleUnhideSubmission(comment.id, 'submission')}>unhide</button>
+              <button className="unhide-btn" onClick={() => handleUnhideSubmission(comment.id, 'comment')}>unhide</button>
             </li>
           ))}
         </ul>
