@@ -23,8 +23,8 @@ import './App.css';
 // Hardcoded API keys for demo
 const USERS = {
   user1: { apiKey: '4a2fcf0c-9a63-45dc-911a-c99ea0630de9', username: 'cara63582' },
-  user2: { apiKey: 'd8ff9305-ae7a-46d4-a925-2801074f7981', username: 'hnsuporte1' },
-  user3: { apiKey: '4422a137-b762-455c-8d02-031458cc832b', username: 'athurte081' },
+  user2: { apiKey: '6092626a-1d29-4938-ae2c-fbf63d4c201d', username: 'hnsuporte1' },
+  user3: { apiKey: '13860060-d7f1-44d4-b9bf-4e275f2a5a03', username: 'athurte081' },
 };
 
 function App() {

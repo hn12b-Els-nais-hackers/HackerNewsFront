@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Link } from 'react-router-dom';
 import "../App.css";
 
-const Favorites = ({ user, userFavedComments = [] }) => {
+const Favorites = ({ user }) => {
   const [favoritesContent, setFavoritesContent] = useState({
     submissions: [],
     comments: [],
@@ -114,10 +114,10 @@ const Favorites = ({ user, userFavedComments = [] }) => {
                       Remove Favorite
                     </button>{" "}
                     | <button className="unhide-btn">
-                        <Link to={`/submission/${submission.id}`}>
-                          {submission.submission_comments?.length || submission.comment_count} comment{(submission.submission_comments?.length || submission.comment_count || 0) !== 1 ? 's' : ''}
-                        </Link>  
-                      </button> 
+                      <Link to={`/submission/${submission.id}`}>
+                        {submission.submission_comments?.length || submission.comment_count} comment{(submission.submission_comments?.length || submission.comment_count || 0) !== 1 ? 's' : ''}
+                      </Link>
+                    </button>
                   </td>
                 </tr>
                 <tr className="spacer" style={{ height: "5px" }}></tr>
@@ -130,14 +130,14 @@ const Favorites = ({ user, userFavedComments = [] }) => {
       )}
 
       <h2>Favorite Comments</h2>
-      {userFavedComments.length > 0 ? (
+      {favoritesContent.comments.length > 0 ? (
         <ul>
           {favoritesContent.comments.map((comment) => (
             <li key={comment.id}>
               <a href={`/submission/${comment.id}`}>{comment.text}</a> - by{" "}
-                    <a href={`/user/${comment.author}`} className="hnuser">
-                      {user.username}
-                    </a> (
+              <a href={`/user/${comment.author}`} className="hnuser">
+                {comment.author}
+              </a> (
               {comment.created_at})
               <button
                 className="unhide-btn"
