@@ -49,22 +49,6 @@ const Comment = ({ comment, level = 0, onReply, user, onAction, userFavedComment
     return (
         <div className="comment" style={{ marginLeft: `${level * 40}px` }}>
             <div className="comment-content">
-                {level === 0 && comment.submission_title && (
-                    <div className="submission-info">
-                        <span className="titleline">
-                            <a href={comment.submission_url}>
-                                {comment.submission_title}
-                            </a>
-                            {comment.submission_url && (
-                                <span className="sitebit comhead">
-                                    {' '}
-                                    (<span className="sitestr">{new URL(comment.submission_url).hostname}</span>)
-                                </span>
-                            )}
-                        </span>
-                    </div>
-                )}
-
                 <div className="comment-meta">
                     <span className="comhead">
                         <Link to={`/user/${authorName}`} className="hnuser">
@@ -108,22 +92,17 @@ const Comment = ({ comment, level = 0, onReply, user, onAction, userFavedComment
                         <tbody>
                             <tr>
                                 <td className="subtext">
-                                    {comment.voted ? (
-                                        <span 
-                                            className="action-link"
-                                            onClick={() => handleAction('unvote')}
-                                        >
-                                            unvote
-                                        </span>
-                                    ) : (
-                                        <span 
-                                            className="action-link"
-                                            onClick={() => handleAction('vote')}
-                                        >
-                                            vote
-                                        </span>
+                                    {user.username !== authorName && (
+                                        <>
+                                            <span 
+                                                className="action-link"
+                                                onClick={() => handleAction(comment.voted ? 'unvote' : 'vote')}
+                                            >
+                                                {comment.voted ? 'unvote' : 'vote'}
+                                            </span>
+                                            {' | '}
+                                        </>
                                     )}
-                                    {' | '}
                                     {userFavedComments.has(parseInt(comment.id)) ? (
                                         <span 
                                             className="action-link"
@@ -140,21 +119,12 @@ const Comment = ({ comment, level = 0, onReply, user, onAction, userFavedComment
                                         </span>
                                     )}
                                     {' | '}
-                                    {comment.hidden ? (
-                                        <span 
-                                            className="action-link"
-                                            onClick={() => handleAction('unhide')}
-                                        >
-                                            unhide
-                                        </span>
-                                    ) : (
-                                        <span 
+                                    <span 
                                             className="action-link"
                                             onClick={() => handleAction('hide')}
                                         >
                                             hide
-                                        </span>
-                                    )}
+                                    </span>
                                     {' | '}
                                     <span 
                                         className="action-link"
@@ -217,11 +187,7 @@ const Comment = ({ comment, level = 0, onReply, user, onAction, userFavedComment
                 {comment.replies?.map(reply => (
                     <Comment 
                         key={reply.id} 
-                        comment={{
-                            ...reply,
-                            submission_title: comment.submission_title,
-                            submission_url: comment.submission_url
-                        }}
+                        comment={reply} 
                         level={level + 1}
                         onReply={onReply}
                         user={user}
@@ -243,6 +209,7 @@ function SubmissionComments({ user }) {
     const [isLoading, setIsLoading] = useState(true);
     const [userFavedSubmissions, setUserFavedSubmissions] = useState(new Set());
     const [userFavedComments, setUserFavedComments] = useState(new Set());
+    const [userUpvotedSubmissions, setUserUpvotedSubmissions] = useState(new Set());
     
     const fetchUserFavedSubmissions = useCallback(async () => {
         if (user && user.username && user.apiKey) {
@@ -296,43 +263,143 @@ function SubmissionComments({ user }) {
         }
     }, [user]);
 
-    const handleSubmissionAction = async (submissionId, action) => {
-        if (!user) {
-          setError('Please log in to perform this action');
-          return;
-        }
-    
-        try {
-          const response = await fetch(
-            `https://hackernews-jwl9.onrender.com/api/submissions/${submissionId}/?action=${action}`,
-            {
-              method: 'POST',
-              headers: {
-                'Api-Key': user.apiKey,
-                'accept': 'application/json'
-              }
+    const fetchUserUpvotedSubmissions = useCallback(async () => {
+        if (user && user.username && user.apiKey) {
+            try {
+                const response = await fetch(
+                    `https://hackernews-jwl9.onrender.com/api/user/${user.username}/content/?content_type=upvoted`,
+                    {
+                        headers: {
+                            'Api-Key': user.apiKey,
+                            'accept': 'application/json'
+                        }
+                    }
+                );
+
+                if (!response.ok) throw new Error('Failed to fetch user upvoted submissions');
+
+                const data = await response.json();
+                if (data.submissions && Array.isArray(data.submissions)) {
+                    setUserUpvotedSubmissions(new Set(data.submissions.map(sub => parseInt(sub.id))));
+                }
+            } catch (err) {
+                console.error('Error fetching user upvoted submissions:', err);
             }
-          );
-    
-          if (!response.ok) throw new Error(`Failed to ${action} submission`);
-    
-          if (action === 'favorite') {
-            setUserFavedSubmissions(prev => new Set([...prev, parseInt(submissionId)]));
-          } else if (action === 'unfavorite') {
-            setUserFavedSubmissions(prev => {
-              const newSet = new Set(prev);
-              newSet.delete(parseInt(submissionId));
-              return newSet;
-            });
-          }
-    
-        } catch (err) {
-          console.error(`Error ${action} submission:`, err);
-          setError(`Failed to ${action} submission`);
         }
-      };
+    }, [user]);
+
+    const fetchUserVotedComments = useCallback(async () => {
+        if (user && user.username && user.apiKey) {
+            try {
+                const response = await fetch(
+                    `https://hackernews-jwl9.onrender.com/api/user/${user.username}/content/?content_type=upvoted`,
+                    {
+                        headers: {
+                            'Api-Key': user.apiKey,
+                            'accept': 'application/json'
+                        }
+                    }
+                );
+
+                if (!response.ok) throw new Error('Failed to fetch user voted comments');
+
+                const data = await response.json();
+                return data.comments && Array.isArray(data.comments) ? 
+                    new Set(data.comments.map(comment => parseInt(comment.id))) : 
+                    new Set();
+            } catch (err) {
+                console.error('Error fetching user voted comments:', err);
+                return new Set();
+            }
+        }
+        return new Set();
+    }, [user]);
+
+    const handleVoteSubmission = async (action) => {
+        if (!user) {
+            setError('Please log in to vote');
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `https://hackernews-jwl9.onrender.com/api/submissions/${submission.id}/?action=${action}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Api-Key': user.apiKey,
+                        'accept': 'application/json'
+                    }
+                }
+            );
+
+            if (!response.ok) throw new Error(`Failed to ${action} submission`);
+
+            if (action === 'vote') {
+                setUserUpvotedSubmissions(prev => new Set([...prev, parseInt(submission.id)]));
+                setSubmission(prev => ({
+                    ...prev,
+                    points: prev.points + 1
+                }));
+            } else if (action === 'unvote') {
+                setUserUpvotedSubmissions(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(parseInt(submission.id));
+                    return newSet;
+                });
+                setSubmission(prev => ({
+                    ...prev,
+                    points: prev.points - 1
+                }));
+            }
+        } catch (err) {
+            console.error(`Error ${action} submission:`, err);
+            setError(`Failed to ${action} submission`);
+        }
+    };
+
+    const handleFavoriteSubmission = async (action) => {
+        if (!user) {
+            setError('Please log in to perform this action');
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `https://hackernews-jwl9.onrender.com/api/submissions/${submission.id}/?action=${action}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Api-Key': user.apiKey,
+                        'accept': 'application/json'
+                    }
+                }
+            );
+
+            if (!response.ok) throw new Error(`Failed to ${action} submission`);
+
+            if (action === 'favorite') {
+                setUserFavedSubmissions(prev => new Set([...prev, parseInt(submission.id)]));
+            } else if (action === 'unfavorite') {
+                setUserFavedSubmissions(prev => {
+                    const newSet = new Set(prev);
+                    newSet.delete(parseInt(submission.id));
+                    return newSet;
+                });
+            }
+        } catch (err) {
+            console.error(`Error ${action} submission:`, err);
+            setError(`Failed to ${action} submission`);
+        }
+    };
 
     useEffect(() => {
+        if (user) {
+            fetchUserFavedSubmissions();
+            fetchUserFavedComments();
+            fetchUserUpvotedSubmissions();
+        }
+        
         const fetchSubmissionAndComments = async () => {
             try {
                 const headers = {
@@ -343,58 +410,51 @@ function SubmissionComments({ user }) {
                     headers['Api-Key'] = user.apiKey;
                 }
 
-                // Obtener todas las submissions y filtrar la que necesitamos
-                const submissionResponse = await fetch(
-                    `https://hackernews-jwl9.onrender.com/api/submissions/`,
+                const response = await fetch(
+                    `https://hackernews-jwl9.onrender.com/api/submissions/${id}/comments/`,
                     {
                         headers: headers
                     }
                 );
 
-                if (!submissionResponse.ok) throw new Error('Failed to fetch submission');
-                const submissionsData = await submissionResponse.json();
+                if (!response.ok) throw new Error('Failed to fetch submission and comments');
+                const data = await response.json();
                 
-                // Encontrar la submission específica por ID
-                const submissionInfo = submissionsData.find(sub => sub.id === parseInt(id));
-                
+                // Extraemos la información de la submission
+                const submissionInfo = {
+                    id: id,
+                    title: data[0]?.submission_title || '',
+                    url: data[0]?.submission_url || '',
+                    points: data[0]?.submission_points || 0,
+                    user: data[0]?.submission_author || '',
+                    created_at: data[0]?.submission_created_at || new Date().toISOString(),
+                    comment_count: data.length
+                };
+                setSubmission(submissionInfo);
 
-                if (submissionInfo) {
-                    setSubmission(submissionInfo);
+                // Obtener los comentarios votados antes de procesar los comentarios
+                const votedComments = user ? await fetchUserVotedComments() : new Set();
 
-                    // Luego obtener los comentarios
-                    const commentsResponse = await fetch(
-                        `https://hackernews-jwl9.onrender.com/api/submissions/${id}/comments/`,
-                        {
-                            headers: headers
-                        }
-                    );
+                // Construir el árbol de comentarios
+                const commentMap = {};
+                const rootComments = [];
 
-                    if (!commentsResponse.ok) throw new Error('Failed to fetch comments');
-                    const commentsData = await commentsResponse.json();
-                    
-                
-
-                    // Añadir la información de la submission a cada comentario
-                    const commentsWithSubmissionInfo = commentsData.map(comment => ({
-                        ...comment,
-                        submission_title: submissionInfo.title,
-                        submission_url: submissionInfo.url
-                    }));
-
-                    // Construir el árbol de comentarios
-                    const commentMap = {};
-                    const rootComments = [];
-
-                    // Primero, mapear todos los comentarios por ID
-                    commentsWithSubmissionInfo.forEach(comment => {
-                        commentMap[comment.id] = {
+                // Primero, mapear todos los comentarios por ID y filtrar los ocultos
+                data.forEach(comment => {
+                    if (!comment.hidden_by || !comment.hidden_by.includes(user.id)) { // Skip comments hidden by the user
+                        const commentId = parseInt(comment.id);
+                        commentMap[commentId] = {
                             ...comment,
-                            replies: []
+                            replies: [],
+                            id: commentId,
+                            voted: votedComments.has(commentId)
                         };
-                    });
+                    }
+                });
 
-                    // Luego, construir el árbol
-                    commentsWithSubmissionInfo.forEach(comment => {
+                // Luego, construir el árbol solo con comentarios no ocultos
+                data.forEach(comment => {
+                    if (!comment.hidden_by || !comment.hidden_by.includes(user.id)) { // Skip comments hidden by the user
                         const commentId = parseInt(comment.id);
                         if (comment.parent_id) {
                             const parentId = parseInt(comment.parent_id);
@@ -405,27 +465,24 @@ function SubmissionComments({ user }) {
                         } else {
                             rootComments.push(commentMap[commentId]);
                         }
+                    }
+                });
+
+                // Rest of the sorting logic remains the same
+                rootComments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+                const sortReplies = (comments) => {
+                    comments.forEach(comment => {
+                        if (comment.replies && comment.replies.length > 0) {
+                            comment.replies.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                            sortReplies(comment.replies);
+                        }
                     });
+                };
 
-                    // Ordenar los comentarios raíz por fecha (más recientes primero)
-                    rootComments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                sortReplies(rootComments);
+                setComments(rootComments);
 
-                    // Ordenar recursivamente las respuestas de cada comentario
-                    const sortReplies = (comments) => {
-                        comments.forEach(comment => {
-                            if (comment.replies && comment.replies.length > 0) {
-                                comment.replies.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-                                sortReplies(comment.replies);
-                            }
-                        });
-                    };
-
-                    sortReplies(rootComments);
-
-                    setComments(rootComments);
-                } else {
-                    throw new Error('Submission not found');
-                }
             } catch (err) {
                 console.error('Error:', err);
                 setError('Failed to load submission and comments');
@@ -435,7 +492,7 @@ function SubmissionComments({ user }) {
         };
 
         fetchSubmissionAndComments();
-    }, [id, user?.apiKey]);
+    }, [id, user, fetchUserFavedSubmissions, fetchUserFavedComments, fetchUserUpvotedSubmissions, fetchUserVotedComments]);
 
     const formatDate = (dateString) => {
         try {
@@ -583,6 +640,45 @@ function SubmissionComments({ user }) {
 
             if (!response.ok) throw new Error(`Failed to ${action} comment`);
 
+            // Actualizar el estado del comentario cuando se vota
+            if (action === 'vote') {
+                setComments(prevComments => {
+                    const updateCommentVoted = (comments) => {
+                        return comments.map(comment => {
+                            if (comment.id === commentId) {
+                                return { ...comment, voted: true };
+                            }
+                            if (comment.replies) {
+                                return {
+                                    ...comment,
+                                    replies: updateCommentVoted(comment.replies)
+                                };
+                            }
+                            return comment;
+                        });
+                    };
+                    return updateCommentVoted(prevComments);
+                });
+            } else if (action === 'unvote') {
+                setComments(prevComments => {
+                    const updateCommentVoted = (comments) => {
+                        return comments.map(comment => {
+                            if (comment.id === commentId) {
+                                return { ...comment, voted: false };
+                            }
+                            if (comment.replies) {
+                                return {
+                                    ...comment,
+                                    replies: updateCommentVoted(comment.replies)
+                                };
+                            }
+                            return comment;
+                        });
+                    };
+                    return updateCommentVoted(prevComments);
+                });
+            }
+
             // Actualizar el estado de favoritos
             if (action === 'fav') {
                 setUserFavedComments(prev => new Set([...prev, parseInt(commentId)]));
@@ -670,6 +766,24 @@ function SubmissionComments({ user }) {
                     return updateComment(prevComments);
                 });
             }
+
+            if (action === 'hide') {
+                // Remove the hidden comment from the UI
+                setComments(prevComments => {
+                    const removeHiddenComment = (comments) => {
+                        return comments.filter(comment => {
+                            if (comment.id === commentId) {
+                                return false;
+                            }
+                            if (comment.replies) {
+                                comment.replies = removeHiddenComment(comment.replies);
+                            }
+                            return true;
+                        });
+                    };
+                    return removeHiddenComment(prevComments);
+                });
+            }
         } catch (err) {
             console.error('Error performing action:', err);
             setError('Failed to perform action');
@@ -696,9 +810,7 @@ function SubmissionComments({ user }) {
                                             <span className="titleline">
                                                 <a href={submission.url}>{submission.title}</a>
                                                 {submission.url && (
-                                                    <span className="sitebit comhead">
-                                                        (<span className="sitestr">{new URL(submission.url).hostname}</span>)
-                                                    </span>
+                                                    <span className="sitebit comhead">({submission.url})</span>
                                                 )}
                                             </span>
                                         </td>
@@ -708,7 +820,6 @@ function SubmissionComments({ user }) {
                                         <td className="subtext">
                                             <span className="score">{submission.points} points</span>
                                             {' by '}
-                                            
                                             <Link to={`/user/${submission.user}`} className="hnuser">
                                                 {submission.user}
                                             </Link>
@@ -716,17 +827,29 @@ function SubmissionComments({ user }) {
                                                 {' '}
                                                 {formatDate(submission.created_at)}
                                             </span>
+                                            {user && user.username !== submission.user && (
+                                                <>
+                                                    {' | '}
+                                                    <span 
+                                                        className="action-link"
+                                                        onClick={() => {
+                                                            const isVoted = userUpvotedSubmissions.has(parseInt(submission.id));
+                                                            handleVoteSubmission(isVoted ? 'unvote' : 'vote');
+                                                        }}
+                                                    >
+                                                        {userUpvotedSubmissions.has(parseInt(submission.id)) ? 'unvote' : 'vote'}
+                                                    </span>
+                                                </>
+                                            )}
                                             {' | '}
                                             <span className="action-link" onClick={() => {
-                                                const action = userFavedSubmissions.has(parseInt(submission.id)) ? 'unfavorite' : 'favorite';
-                                                handleSubmissionAction(submission.id, action);
+                                                const isFaved = userFavedSubmissions.has(parseInt(submission.id));
+                                                handleFavoriteSubmission(isFaved ? 'unfavorite' : 'favorite');
                                             }}>
                                                 {userFavedSubmissions.has(parseInt(submission.id)) ? 'unfav' : 'fav'}
                                             </span>
                                             {' | '}
                                             <span>{submission.comment_count} comment{submission.comment_count !== 1 ? 's' : ''}</span>
-                                            {' | '}
-                                            <span className="action-link">vote</span>
                                             {' | '}
                                             <span className="action-link">hide</span>
                                         </td>
@@ -750,11 +873,7 @@ function SubmissionComments({ user }) {
                                     {comments.map(comment => (
                                         <Comment 
                                             key={comment.id} 
-                                            comment={{
-                                                ...comment,
-                                                submission_title: submission.title,
-                                                submission_url: submission.url
-                                            }}
+                                            comment={comment} 
                                             onReply={handleReplySubmit}
                                             user={user}
                                             onAction={handleCommentAction}
