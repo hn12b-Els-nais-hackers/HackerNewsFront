@@ -49,6 +49,22 @@ const Comment = ({ comment, level = 0, onReply, user, onAction, userFavedComment
     return (
         <div className="comment" style={{ marginLeft: `${level * 40}px` }}>
             <div className="comment-content">
+                {level === 0 && comment.submission_title && (
+                    <div className="submission-info">
+                        <span className="titleline">
+                            <a href={comment.submission_url}>
+                                {comment.submission_title}
+                            </a>
+                            {comment.submission_url && (
+                                <span className="sitebit comhead">
+                                    {' '}
+                                    (<span className="sitestr">{new URL(comment.submission_url).hostname}</span>)
+                                </span>
+                            )}
+                        </span>
+                    </div>
+                )}
+
                 <div className="comment-meta">
                     <span className="comhead">
                         <Link to={`/user/${authorName}`} className="hnuser">
@@ -201,7 +217,11 @@ const Comment = ({ comment, level = 0, onReply, user, onAction, userFavedComment
                 {comment.replies?.map(reply => (
                     <Comment 
                         key={reply.id} 
-                        comment={reply} 
+                        comment={{
+                            ...reply,
+                            submission_title: comment.submission_title,
+                            submission_url: comment.submission_url
+                        }}
                         level={level + 1}
                         onReply={onReply}
                         user={user}
@@ -313,11 +333,6 @@ function SubmissionComments({ user }) {
       };
 
     useEffect(() => {
-        if (user) {
-            fetchUserFavedSubmissions();
-            fetchUserFavedComments();
-        }
-        
         const fetchSubmissionAndComments = async () => {
             try {
                 const headers = {
@@ -328,73 +343,89 @@ function SubmissionComments({ user }) {
                     headers['Api-Key'] = user.apiKey;
                 }
 
-                const response = await fetch(
-                    `https://hackernews-jwl9.onrender.com/api/submissions/${id}/comments/`,
+                // Obtener todas las submissions y filtrar la que necesitamos
+                const submissionResponse = await fetch(
+                    `https://hackernews-jwl9.onrender.com/api/submissions/`,
                     {
                         headers: headers
                     }
                 );
 
-                if (!response.ok) throw new Error('Failed to fetch submission and comments');
-                const data = await response.json();
+                if (!submissionResponse.ok) throw new Error('Failed to fetch submission');
+                const submissionsData = await submissionResponse.json();
                 
-                // Extraemos la información de la submission
-                const submissionInfo = {
-                    id: id,
-                    title: data[0]?.submission_title || '',
-                    url: data[0]?.submission_url || '',
-                    points: data[0]?.submission_points || 0,
-                    user: data[0]?.submission_author || '',
-                    created_at: data[0]?.submission_created_at || new Date().toISOString(),
-                    comment_count: data.length
-                };
-                setSubmission(submissionInfo);
+                // Encontrar la submission específica por ID
+                const submissionInfo = submissionsData.find(sub => sub.id === parseInt(id));
+                
 
-                // Construir el árbol de comentarios
-                const commentMap = {};
-                const rootComments = [];
+                if (submissionInfo) {
+                    setSubmission(submissionInfo);
 
-                // Primero, mapear todos los comentarios por ID
-                data.forEach(comment => {
-                    const commentId = parseInt(comment.id);
-                    commentMap[commentId] = {
-                        ...comment,
-                        replies: [],
-                        id: commentId
-                    };
-                });
-
-                // Luego, construir el árbol
-                data.forEach(comment => {
-                    const commentId = parseInt(comment.id);
-                    if (comment.parent_id) {
-                        const parentId = parseInt(comment.parent_id);
-                        const parent = commentMap[parentId];
-                        if (parent) {
-                            parent.replies.push(commentMap[commentId]);
+                    // Luego obtener los comentarios
+                    const commentsResponse = await fetch(
+                        `https://hackernews-jwl9.onrender.com/api/submissions/${id}/comments/`,
+                        {
+                            headers: headers
                         }
-                    } else {
-                        rootComments.push(commentMap[commentId]);
-                    }
-                });
+                    );
 
-                // Ordenar los comentarios raíz por fecha (más recientes primero)
-                rootComments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    if (!commentsResponse.ok) throw new Error('Failed to fetch comments');
+                    const commentsData = await commentsResponse.json();
+                    
+                
 
-                // Ordenar recursivamente las respuestas de cada comentario
-                const sortReplies = (comments) => {
-                    comments.forEach(comment => {
-                        if (comment.replies && comment.replies.length > 0) {
-                            comment.replies.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-                            sortReplies(comment.replies);
+                    // Añadir la información de la submission a cada comentario
+                    const commentsWithSubmissionInfo = commentsData.map(comment => ({
+                        ...comment,
+                        submission_title: submissionInfo.title,
+                        submission_url: submissionInfo.url
+                    }));
+
+                    // Construir el árbol de comentarios
+                    const commentMap = {};
+                    const rootComments = [];
+
+                    // Primero, mapear todos los comentarios por ID
+                    commentsWithSubmissionInfo.forEach(comment => {
+                        commentMap[comment.id] = {
+                            ...comment,
+                            replies: []
+                        };
+                    });
+
+                    // Luego, construir el árbol
+                    commentsWithSubmissionInfo.forEach(comment => {
+                        const commentId = parseInt(comment.id);
+                        if (comment.parent_id) {
+                            const parentId = parseInt(comment.parent_id);
+                            const parent = commentMap[parentId];
+                            if (parent) {
+                                parent.replies.push(commentMap[commentId]);
+                            }
+                        } else {
+                            rootComments.push(commentMap[commentId]);
                         }
                     });
-                };
 
-                sortReplies(rootComments);
+                    // Ordenar los comentarios raíz por fecha (más recientes primero)
+                    rootComments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-                setComments(rootComments);
+                    // Ordenar recursivamente las respuestas de cada comentario
+                    const sortReplies = (comments) => {
+                        comments.forEach(comment => {
+                            if (comment.replies && comment.replies.length > 0) {
+                                comment.replies.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                                sortReplies(comment.replies);
+                            }
+                        });
+                    };
 
+                    sortReplies(rootComments);
+
+                    setComments(rootComments);
+                } else {
+                    throw new Error('Submission not found');
+                }
             } catch (err) {
                 console.error('Error:', err);
                 setError('Failed to load submission and comments');
@@ -404,7 +435,7 @@ function SubmissionComments({ user }) {
         };
 
         fetchSubmissionAndComments();
-    }, [id, user, fetchUserFavedSubmissions, fetchUserFavedComments]);
+    }, [id, user?.apiKey]);
 
     const formatDate = (dateString) => {
         try {
@@ -665,7 +696,9 @@ function SubmissionComments({ user }) {
                                             <span className="titleline">
                                                 <a href={submission.url}>{submission.title}</a>
                                                 {submission.url && (
-                                                    <span className="sitebit comhead">({submission.url})</span>
+                                                    <span className="sitebit comhead">
+                                                        (<span className="sitestr">{new URL(submission.url).hostname}</span>)
+                                                    </span>
                                                 )}
                                             </span>
                                         </td>
@@ -675,6 +708,7 @@ function SubmissionComments({ user }) {
                                         <td className="subtext">
                                             <span className="score">{submission.points} points</span>
                                             {' by '}
+                                            
                                             <Link to={`/user/${submission.user}`} className="hnuser">
                                                 {submission.user}
                                             </Link>
@@ -716,7 +750,11 @@ function SubmissionComments({ user }) {
                                     {comments.map(comment => (
                                         <Comment 
                                             key={comment.id} 
-                                            comment={comment} 
+                                            comment={{
+                                                ...comment,
+                                                submission_title: submission.title,
+                                                submission_url: submission.url
+                                            }}
                                             onReply={handleReplySubmit}
                                             user={user}
                                             onAction={handleCommentAction}
